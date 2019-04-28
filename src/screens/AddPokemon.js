@@ -4,14 +4,14 @@ import {
   Picker,
   StyleSheet,
   FlatList,
-  TouchableOpacity
+  TouchableOpacity,
 } from 'react-native';
-import { Input, Image, Text, Button } from 'react-native-elements';
-import { connect } from 'react-redux';
+import {Input, Image, Text, Button} from 'react-native-elements';
+import {connect} from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import Modal from 'react-native-modal';
 
-import { addPokemon } from '../store/actions/pokemon';
+import {addPokemon} from '../store/actions/pokemon';
 
 class AddPokemon extends React.Component {
   constructor() {
@@ -21,27 +21,28 @@ class AddPokemon extends React.Component {
         name: '',
         type: '',
         category: '',
-        image: null
+        image: null,
       },
       modalVisible: {
         pokemonType: false,
-        pickImage: false
-      }
+        pickImage: false,
+      },
     };
   }
 
   static navigationOptions = {
-    headerRight: (<Button title='add' type='clear' onPress={this._addPokemonHandler}/>)
-  }
+    headerRight: (
+      <Button title="add" type="clear" onPress={this._addPokemonHandler} />
+    ),
+  };
 
   _addPokemonHandler = () => {
-
-    const { name, category, type } = this.state;
+    const {name, category, type} = this.state;
 
     let image = {
       uri: this.state.control.image.path,
       type: 'image/jpeg',
-      name: this.state.control.name
+      name: this.state.control.name,
     };
 
     let data = new FormData();
@@ -51,30 +52,30 @@ class AddPokemon extends React.Component {
     data.append('category', category);
     data.append('type', type);
 
-    this.props.createPost(data);
+    this.props.addPokemon(data);
 
-    this.setState(state => ({
+    /*    this.setState(state => ({
       ...state,
       control: {
         ...state.control,
         image: null
       }
-    }))
-  }
+		}))*/
+  };
 
   _openLibraryHandler = () => {
     ImagePicker.openPicker({
       width: 300,
       height: 400,
-      cropping: true
+      cropping: true,
     })
       .then(image => {
         this.setState(state => ({
           ...state,
           conrol: {
             ...state.control,
-            image
-          }
+            image,
+          },
         }));
         this._pickImageModalVisibilityHandler();
       })
@@ -85,15 +86,15 @@ class AddPokemon extends React.Component {
     ImagePicker.openCamera({
       width: 300,
       height: 400,
-      cropping: true
+      cropping: true,
     })
       .then(image => {
         this.setState(state => ({
           ...state,
           control: {
             ...state.control,
-            image: image
-          }
+            image: image,
+          },
         }));
       })
       .catch(() => alert('open camera canceled'));
@@ -104,8 +105,8 @@ class AddPokemon extends React.Component {
       ...state,
       control: {
         ...state.control,
-        name: val
-      }
+        name: val,
+      },
     }));
   };
 
@@ -114,8 +115,8 @@ class AddPokemon extends React.Component {
       ...state,
       control: {
         ...state.control,
-        category: val
-      }
+        category: val,
+      },
     }));
   };
 
@@ -123,8 +124,8 @@ class AddPokemon extends React.Component {
     this.setState(state => ({
       control: {
         ...state.control,
-        type: item
-      }
+        type: item,
+      },
     }));
     this._typeModalVisibilityHandler();
   };
@@ -134,8 +135,8 @@ class AddPokemon extends React.Component {
       ...state,
       modalVisible: {
         ...state.modalVisible,
-        pokemonType: !state.modalVisible.pokemonType
-      }
+        pokemonType: !state.modalVisible.pokemonType,
+      },
     }));
   };
 
@@ -144,8 +145,8 @@ class AddPokemon extends React.Component {
       ...state,
       modalVisible: {
         ...state.modalVisible,
-        pickImage: !state.modalVisible.pickImage
-      }
+        pickImage: !state.modalVisible.pickImage,
+      },
     }));
   };
 
@@ -156,17 +157,15 @@ class AddPokemon extends React.Component {
           isVisible={this.state.modalVisible.pickImage}
           animationIn="flash"
           animationOut="fadeOut"
-          style={{ alignItems: 'center' }}
-          onBackdropPress={this._pickImageModalVisibilityHandler}
-        >
+          style={{alignItems: 'center'}}
+          onBackdropPress={this._pickImageModalVisibilityHandler}>
           <View
             style={{
               backgroundColor: '#fff',
               height: '50%',
               width: '70%',
-              flexDirection: 'column'
-            }}
-          >
+              flexDirection: 'column',
+            }}>
             <Text>Choose</Text>
             <Button
               type="clear"
@@ -184,39 +183,35 @@ class AddPokemon extends React.Component {
           isVisible={this.state.modalVisible.pokemonType}
           animationIn="flash"
           animationOut="fadeOut"
-          style={{ alignItems: 'center' }}
-          onBackdropPress={this._typeModalVisibilityHandler}
-        >
+          style={{alignItems: 'center'}}
+          onBackdropPress={this._typeModalVisibilityHandler}>
           <View
             style={{
               backgroundColor: '#fff',
               height: '50%',
               width: '70%',
-              flexDirection: 'column'
-            }}
-          >
+              flexDirection: 'column',
+            }}>
             <View
               style={{
                 alignItems: 'center',
                 padding: 5,
                 borderBottomWidth: 0.8,
-                borderColor: '#eee'
-              }}
-            >
-              <Text style={{ fontSize: 18 }}>Select pokemon type</Text>
+                borderColor: '#eee',
+              }}>
+              <Text style={{fontSize: 18}}>Select pokemon type</Text>
             </View>
             <FlatList
               data={this.props.pokemon_types}
               keyExtractor={item => 'key ' + item.id}
-              renderItem={({ item }) => (
+              renderItem={({item}) => (
                 <TouchableOpacity
                   onPress={this._pickTypeHandler.bind(this, item)}
                   style={{
                     flexDirection: 'row',
                     paddingVertical: 10,
-                    justifyContent: 'center'
-                  }}
-                >
+                    justifyContent: 'center',
+                  }}>
                   <Text>{item.name}</Text>
                 </TouchableOpacity>
               )}
@@ -251,7 +246,7 @@ class AddPokemon extends React.Component {
             source={
               this.state.control.image === null
                 ? null
-                : { uri: this.state.control.image.path }
+                : {uri: this.state.control.image.path}
             }
             containerStyle={styles.imgWrapper}
             style={styles.img}
@@ -262,27 +257,31 @@ class AddPokemon extends React.Component {
             title="pick image"
           />
         </View>
+        <Button title="send" onPress={this._addPokemonHandler} />
       </View>
     );
   }
 }
 
 const mapState = state => ({
-  pokemon_types: state.pokemon_type.pokemon_types
+  pokemon_types: state.pokemon_type.pokemon_types,
 });
 
-export default connect(mapState, { addPokemon })(AddPokemon);
+export default connect(
+  mapState,
+  {addPokemon},
+)(AddPokemon);
 
 const styles = StyleSheet.create({
   imgWrapper: {
-      flexDirection: 'row',
-      width: '30%',
-      height: '100%'
-    },
-    img: {
-      flex: 1,
-      alignSelf: 'stretch',
-      width: undefined,
-      height: undefined
-    }
-  })
+    flexDirection: 'row',
+    width: '30%',
+    height: '30%',
+  },
+  img: {
+    flex: 1,
+    alignSelf: 'stretch',
+    width: undefined,
+    height: undefined,
+  },
+});
