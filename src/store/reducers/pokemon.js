@@ -4,14 +4,12 @@ import {
   GET_POKEMONS_REJECTED,
   ADD_POKEMON_REJECTED,
   ADD_POKEMON_FULFILLED,
-  ADD_POKEMON_PENDING
+  ADD_POKEMON_PENDING,
 } from '../actions/types';
-import squirtle from '../../../assets/dummy/squirtle.jpg';
-import caterpie from '../../../assets/dummy/caterpie.jpg';
 
 const initialState = {
   pokemons: [],
-  isLoading: false
+  isLoading: false,
 };
 
 const pokemon = (state = initialState, action) => {
@@ -19,31 +17,37 @@ const pokemon = (state = initialState, action) => {
     case GET_POKEMONS_PENDING:
       return {
         ...state,
-        isLoading: true
+        isLoading: true,
       };
     case GET_POKEMONS_FULFILLED:
       return {
         ...state,
         pokemons: action.payload.data.data,
-        isLoading: false
+        isLoading: false,
       };
     case GET_POKEMONS_REJECTED:
       return {
         isLoading: false,
-        pokemons: []
+        pokemons: [],
+      };
+    case ADD_POKEMON_PENDING:
+      console.log(action.payload.data);
+      return {
+        ...state,
+        isLoading: true,
       };
     case ADD_POKEMON_FULFILLED:
-      console.log(action.payload.data)
+      console.log(action.payload.data);
       return {
         ...state,
         isLoading: false,
-        pokemons: state.pokemons.concat(action.payload.data.data)
+        pokemons: state.pokemons.concat(action.payload.data.data),
       };
     case ADD_POKEMON_REJECTED:
-        console.log(action.payload.data)
+      console.log(action.payload.data);
       return {
         ...state,
-        isLoading: false
+        isLoading: false,
       };
     default:
       return state;

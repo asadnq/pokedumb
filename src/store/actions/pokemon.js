@@ -21,12 +21,13 @@ export const searchPokemon = q => {
 };
 
 export const addPokemon = data => dispatch => {
-  console.log(data);
   return {
     type: ADD_POKEMON,
     payload: instance
       .post('/pokemons', data)
-      .then(res => dispatch({payload: res, type: ADD_POKEMON_FULFILLED}))
+      .then(res => {
+        dispatch({payload: res, type: ADD_POKEMON_FULFILLED});
+      })
       .catch(() => dispatch({type: ADD_POKEMON_REJECTED})),
   };
 };
