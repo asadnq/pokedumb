@@ -19,7 +19,7 @@ class AddPokemon extends React.Component {
     this.state = {
       control: {
         name: '',
-        type: '',
+        type: [],
         category: '',
         image: null,
       },
@@ -37,7 +37,7 @@ class AddPokemon extends React.Component {
   };
 
   _addPokemonHandler = () => {
-    const {name, category, type} = this.state;
+    const {name, category, type} = this.state.control;
 
     let image = {
       uri: this.state.control.image.path,
@@ -72,9 +72,9 @@ class AddPokemon extends React.Component {
       .then(image => {
         this.setState(state => ({
           ...state,
-          conrol: {
+          control: {
             ...state.control,
-            image,
+            image: image,
           },
         }));
         this._pickImageModalVisibilityHandler();
@@ -121,12 +121,16 @@ class AddPokemon extends React.Component {
   };
 
   _pickTypeHandler = item => {
-    this.setState(state => ({
-      control: {
-        ...state.control,
-        type: item,
-      },
-    }));
+    console.log(item);
+    this.setState(
+      state => ({
+        control: {
+          ...state.control,
+          type: state.control.type.concat(item.id),
+        },
+      }),
+      console.log(this.state.control.type),
+    );
     this._typeModalVisibilityHandler();
   };
 
@@ -257,6 +261,9 @@ class AddPokemon extends React.Component {
             title="pick image"
           />
         </View>
+        <Text>{this.state.control.name}</Text>
+        <Text>{this.state.control.type}</Text>
+        <Text>{this.state.control.category}</Text>
         <Button title="send" onPress={this._addPokemonHandler} />
       </View>
     );

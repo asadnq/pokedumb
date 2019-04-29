@@ -24,7 +24,7 @@ class Login extends React.Component {
     }));
   };
 
-  _inputPasswordHandler = val => {
+  _passwordInputHandler = val => {
     this.setState(state => ({
       control: {
         ...state.control,
