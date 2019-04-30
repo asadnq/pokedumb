@@ -29,7 +29,7 @@ const MainStack = createStackNavigator(
     },
   },
   {
-    initialRouteName: 'AddPokemon',
+    initialRouteName: 'MainTab',
   },
 );
 
@@ -54,7 +54,7 @@ const MainSwitch = createSwitchNavigator(
     },
   },
   {
-    initialRouteName: 'MainStack',
+    initialRouteName: 'AuthStack',
   },
 );
 

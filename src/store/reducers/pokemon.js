@@ -31,20 +31,19 @@ const pokemon = (state = initialState, action) => {
         pokemons: [],
       };
     case ADD_POKEMON_PENDING:
-      console.log(action.payload.data);
       return {
         ...state,
         isLoading: true,
       };
     case ADD_POKEMON_FULFILLED:
-      console.log(action.payload.data);
+      alert('add fulfilled')
       return {
         ...state,
         isLoading: false,
         pokemons: state.pokemons.concat(action.payload.data.data),
       };
     case ADD_POKEMON_REJECTED:
-      console.log(action.payload.data);
+      alert('add rejected')
       return {
         ...state,
         isLoading: false,

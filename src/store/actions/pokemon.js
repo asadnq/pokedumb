@@ -20,14 +20,17 @@ export const searchPokemon = q => {
   };
 };
 
-export const addPokemon = data => dispatch => {
-  return {
-    type: ADD_POKEMON,
-    payload: instance
-      .post('/pokemons', data)
-      .then(res => {
-        dispatch({payload: res, type: ADD_POKEMON_FULFILLED});
+export const addPokemon = pokemon => dispatch => {
+  instance.post('/pokemons', pokemon)
+    .then(res => {
+      dispatch({
+        type: ADD_POKEMON_FULFILLED,
+        payload: res
       })
-      .catch(() => dispatch({type: ADD_POKEMON_REJECTED})),
-  };
+    }).catch(err => {
+      dispatch({
+        type: ADD_POKEMON_REJECTED
+      })
+      console.log(err)
+    })
 };

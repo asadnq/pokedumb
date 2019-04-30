@@ -43,7 +43,7 @@ class AddPokemon extends React.Component {
     });
   }
 
-  static navigationOptions = ({ state, navigation }) => ({
+  static navigationOptions = ({ navigation }) => ({
     title: 'add pokemon',
     headerRight: (
       <Button
@@ -55,7 +55,6 @@ class AddPokemon extends React.Component {
   });
 
   _addPokemonHandler = () => {
-    alert('haha yes');
     const { name, category, type } = this.state.control;
 
     let image = {
@@ -65,18 +64,21 @@ class AddPokemon extends React.Component {
     };
 
     let data = new FormData();
-
+    
     data.append('image', image);
     data.append('name', name);
+    data.append('type', JSON.stringify(type));
     data.append('category', category);
-    data.append('type', type);
+    
 
     this.props.addPokemon(data);
 
     this.setState(state => ({
       ...state,
       control: {
-        ...state.control,
+        name: '',
+        type: [],
+        category: '',
         image: null
       }
     }));
@@ -140,7 +142,6 @@ class AddPokemon extends React.Component {
   };
 
   _pickTypeHandler = item => {
-    console.log(item);
     this.setState(state => ({
       ...state,
       control: {
@@ -363,7 +364,7 @@ class AddPokemon extends React.Component {
               alignSelf: 'center'
             }}
           />
-          {/* <Button title="send" onPress={this._addPokemonHandler} /> */}
+          <Button title="send" onPress={this._addPokemonHandler} />
         </View>
       </View>
     );

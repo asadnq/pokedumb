@@ -9,6 +9,7 @@ import {
 import { Text, Image, Input } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { getPokemons, searchPokemon } from '../store/actions/pokemon';
+import { getPokemonTypes } from '../store/actions/pokemon_type';
 
 import ListPokemon from '../components/ListPokemon';
 import FAB from '../components/buttons/FAB';
@@ -56,6 +57,7 @@ class Home extends React.Component {
 
   componentDidMount() {
     this.props.getPokemons();
+    this.props.getPokemonTypes();
   }
 
   render() {
@@ -98,5 +100,5 @@ const mapState = state => {
 
 export default connect(
   mapState,
-  { getPokemons, searchPokemon }
+  { getPokemons, searchPokemon, getPokemonTypes }
 )(Home);
