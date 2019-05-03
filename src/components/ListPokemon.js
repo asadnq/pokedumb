@@ -33,9 +33,9 @@ const ListPokemon = props => {
               <Text style={{color: '#222'}}>type: </Text>
               <FlatList 
                 data={props.type}
-                keyExtractor={item => Math.random.toString()}
+                keyExtractor={item => item.id + ' key'}
                 horizontal={true}
-                renderItem={({item}) => <ListType text={item.name} />}
+                renderItem={({item}) => <ListType type={item.name} text={item.name} />}
               />
             </View>
           </View>
@@ -66,14 +66,15 @@ const styles = StyleSheet.create({
           marginHorizontal: width * 0.03,
           height: height * .17,
           borderRadius: 5,
-          elevation: 2
+          borderWidth: .8
       },
       listText: {
         flexDirection: 'column',
         paddingVertical: 15,
         paddingHorizontal: 10,
         justifyContent: 'space-between',
-        backgroundColor: '#EFFDEF'
+        backgroundColor: '#EFFDEF',
+        width: '69%'
       },
       listTitle: {
         borderBottomWidth: .88,

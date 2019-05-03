@@ -14,7 +14,7 @@ const initialRegion = {
   longitudeDelta: 0.0421
 };
 
-class PokeMap extends React.Component {
+class PickLocation extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -31,6 +31,7 @@ class PokeMap extends React.Component {
         ...region
       }
     }));
+    this.map.animateToRegion(region);
   };
 
   _getCurrentPosition = () => {
@@ -72,10 +73,15 @@ class PokeMap extends React.Component {
     }));
   };
 
+  _pickLocationHandler = () => {
+    this.props.navigation.state.params.setCoordinate(this.state.region)
+    this.props.navigation.goBack()
+  }
+
   render() {
     let marker;
-    if(this.state.locationPick) {
-        marker = (<Marker coordinate={this.state.region} />)
+    if (this.state.locationPick) {
+      marker = <Marker coordinate={this.state.region} />;
     }
     return (
       <View>
@@ -89,17 +95,14 @@ class PokeMap extends React.Component {
           region={this.state.region}
           onPress={this._onPressMap}
         >
-        {marker}
+          {marker}
         </MapView>
-        <Button
-          title="get current location"
-          onPress={this._getCurrentPosition}
-        />
-        <Text>latitude: {this.state.region.latitude}</Text>
-        <Text>longitude: {this.state.region.longitude}</Text>
+        <View>
+          <Button title="pick location" onPress={this._pickLocationHandler} />
+        </View>
       </View>
     );
   }
 }
 
-export default connect(null)(PokeMap);
+export default connect(null)(PickLocation);

@@ -3,64 +3,64 @@ import {
   View,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Dimensions,
-  ScrollView
+  TouchableOpacity
 } from 'react-native';
-import { Input, Image, Text, Button } from 'react-native-elements';
+import { Button, Input, Text, Image } from 'react-native-elements';
 import { connect } from 'react-redux';
-import ImagePicker from 'react-native-image-crop-picker';
 import Modal from 'react-native-modal';
+import ImagePicker from 'react-native-image-crop-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { NavigationEvents } from 'react-navigation';
 
-import { addPokemon } from '../store/actions/pokemon';
+import { updatePokemon } from '../store/actions/pokemon';
+import { POKEMON_IMG_PATH } from '../config/url.config';
 import typeColor from '../components/misc/typeColor';
 
-class AddPokemon extends React.Component {
-  constructor() {
-    super();
+class EditPokemon extends React.Component {
+  constructor(props) {
+    super(props);
+
     this.state = {
       control: {
         name: '',
-        type: [],
         category: '',
-        image: null,
-        latitude: 0,
+        image: {
+          path:  ''
+        },
+        type: [],
+        latitude: 0.0,
         longitude: 0
       },
       modalVisible: {
         pokemonType: false,
         pickImage: false
-      }
+      },
+      imageReplaced: false
     };
   }
 
-  static navigationOptions = ({ navigation }) => ({
-    title: 'add pokemon',
-    headerRight: (
-      <Button title="add" onPress={navigation.getParam('addPokemon')} type="clear" />
-    )
-  });
-
-  _addPokemonHandler = () => {
+  _updatePokemonHandler = () => {
     const { name, category, type, latitude, longitude } = this.state.control;
-
-    let image = {
-      uri: this.state.control.image.path,
-      type: 'image/jpeg',
-      name: this.state.control.name
-    };
 
     let data = new FormData();
 
-    data.append('image', image);
+    if (this.state.imageReplaced) {
+      let image = {
+        uri: this.state.control.image.path,
+        type: 'image/jpeg',
+        name: this.state.control.name
+      };
+      data.append('image', image);
+    }
     data.append('name', name);
     data.append('type', JSON.stringify(type));
     data.append('category', category);
     data.append('latitude', latitude)
     data.append('longitude', longitude)
 
-    this.props.addPokemon(data);
+    this.props.updatePokemon(this.props.pokemon.id, data);
 
     this.setState(state => ({
       ...state,
@@ -69,7 +69,8 @@ class AddPokemon extends React.Component {
         name: '',
         type: [],
         category: '',
-        image: null
+        latitude: 0,
+        longitude: 0
       }
     }));
   };
@@ -84,7 +85,8 @@ class AddPokemon extends React.Component {
           control: {
             ...state.control,
             image: image
-          }
+          },
+          imageReplaced: true
         }));
         this._pickImageModalVisibilityHandler();
       })
@@ -102,7 +104,8 @@ class AddPokemon extends React.Component {
           ...state,
           control: {
             ...state.control,
-            image: image
+            image: image,
+            imageReplaced: true
           }
         }));
       })
@@ -187,50 +190,28 @@ class AddPokemon extends React.Component {
     });
   };
 
-  componentDidMount() {
-    this.props.navigation.setParams({
-      addPokemon: this._addPokemonHandler.bind(this),
-      dummy: 'test'
-    });
-  }
-
   render() {
-    const { width, height } = Dimensions.get('window');
-
-    let imageComponent;
-
-    if (this.state.control.image === null) {
-      imageComponent = (
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#ccc',
-            height: height * 0.4
-          }}
-        >
-          <Icon name="add-a-photo" size={42} />
-        </View>
-      );
-    } else {
-      imageComponent = (
-        <Image
-          source={
-            this.state.control.image === null
-              ? null
-              : { uri: this.state.control.image.path }
-          }
-          containerStyle={styles.imgWrapper}
-          style={styles.img}
-          placeholder="image"
-          resizeMode="contain"
-        />
-      );
-    }
+    const { control } = this.state;
 
     return (
       <View>
+        <NavigationEvents
+          onWillFocus={() => {
+            const { pokemon } = this.props.navigation.state.params;
+
+            this.setState(state => ({
+              ...state,
+              control: {
+                ...pokemon,
+                category: pokemon.category.name,
+                image: {
+                  path: pokemon.image_url
+                },
+                ...state.control
+              }
+            }));
+          }}
+        />
         <Modal
           isVisible={this.state.modalVisible.pickImage}
           animationIn="flash"
@@ -296,7 +277,7 @@ class AddPokemon extends React.Component {
               data={this.props.pokemon_types}
               keyExtractor={item => 'key ' + item.id}
               renderItem={({ item }) => {
-                if (!this.state.control.type.includes(item)) {
+                if (!control.type.includes(item)) {
                   return (
                     <TouchableOpacity
                       onPress={this._pickTypeHandler.bind(this, item)}
@@ -320,46 +301,51 @@ class AddPokemon extends React.Component {
             />
           </View>
         </Modal>
-        <ScrollView style={{ paddingHorizontal: width * .02 }}>
-          {imageComponent}
-          <Button
-            onPress={this._pickImageModalVisibilityHandler}
-            containerStyle={{ alignSelf: 'center' }}
-            title="pick image"
-            type="clear"
-          />
-          <View
-            style={{
-              justifyContent: 'space-between',
-              flexDirection: 'column',
-              height: height * .28
-            }}
-          >
-            <Input
-              onChangeText={this._inputNameHandler}
-              value={this.state.control.name}
-              placeholder="Insert pokemon name..."
+        <View style={{ height: '100%', flexDirection: 'column' }}>
+          <View>
+            <Image
+              source={{
+                uri: this.state.imageReplaced
+                  ? control.image.path
+                  : POKEMON_IMG_PATH + control.image.path
+              }}
+              containerStyle={styles.imgWrapper}
+              style={styles.img}
+              resizeMode="contain"
+            />
+            <Button
+              title="pick image"
+              type="clear"
+              onPress={this._pickImageModalVisibilityHandler}
             />
             <Input
+              label="name : "
+              value={control.name}
+              onChangeText={this._inputNameHandler}
+            />
+            <Input
+              label="category : "
+              value={control.category}
               onChangeText={this._inputCategoryHandler}
-              value={this.state.control.category}
-              placeholder="Insert pokemon category..."
             />
             <View style={{flexDirection: 'row'}}>
               <Input value={this.state.control.latitude.toString()} editable={false} containerStyle={{width: '50%'}} />
               <Input value={this.state.control.longitude.toString()} editable={false} containerStyle={{width: '50%'}}/>
             </View>
+          <View style={{ flexDirection: 'row' }}>
+            <Button
+              title="pick location"
+              onPress={this._toPickLocation}
+            />
+            <Button
+              onPress={this._typeModalVisibilityHandler}
+              title="select type"
+              type="outline"
+            />
           </View>
-          <View style={{ height: height * .08, marginVertical: height * .01 }}>
             <FlatList
-              data={this.state.control.type}
+              data={control.type}
               horizontal={true}
-              keyExtractor={(item, index) => 'key ' + index}
-              style={{ marginVertical: height * 0.005 }}
-              contentContainerStyle={{
-                justifyContent: 'center',
-                flexDirection: 'row'
-              }}
               renderItem={({ item }) => {
                 return (
                   <TouchableOpacity
@@ -379,35 +365,53 @@ class AddPokemon extends React.Component {
                   </TouchableOpacity>
                 );
               }}
+              keyExtractor={item => 'key ' + item.id}
             />
           </View>
-          <View style={{ flexDirection: 'row' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              padding: width * 0.02,
+              justifyContent: 'space-around',
+              height: height * 0.1,
+              position: 'absolute',
+              bottom: 0,
+              borderTopWidth: 0.78,
+              borderColor: '#ccc',
+              width: width
+            }}
+          >
             <Button
-              title="pick location"
-              onPress={this._toPickLocation}
-            />
-            <Button
-              onPress={this._typeModalVisibilityHandler}
-              title="select type"
-              type="outline"
+              title="save"
+              containerStyle={styles.saveButtonContainer}
+              buttonStyle={styles.saveButton}
+              onPress={this._updatePokemonHandler.bind(
+                this,
+                this.props.pokemon
+              )}
+              icon={{ name: 'save', size: 24, color: '#DDD' }}
             />
           </View>
-        </ScrollView>
+        </View>
       </View>
     );
   }
 }
 
-const mapState = state => ({
-  pokemon_types: state.pokemon_type.pokemon_types
-});
+const mapState = state => {
+  return {
+    pokemon: state.pokemon.pokemon,
+    pokemon_types: state.pokemon_type.pokemon_types
+  };
+};
 
 export default connect(
   mapState,
-  { addPokemon }
-)(AddPokemon);
+  { updatePokemon }
+)(EditPokemon);
 
-const { height, width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   pickImageModal: {
@@ -425,14 +429,32 @@ const styles = StyleSheet.create({
     borderRadius: 10
   },
   imgWrapper: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     width: '100%',
     height: height * 0.4
   },
   img: {
-    flex: 1,
     alignSelf: 'stretch',
+    flex: 1,
     width: undefined,
     height: undefined
+  },
+  pokemonName: {
+    fontSize: width * 0.08,
+    fontWeight: 'bold',
+    color: '#262322'
+  },
+  pokemonCategory: {},
+  editButtonContainer: {
+    width: '73%'
+  },
+  deleteButtonContainer: {
+    width: '25%'
+  },
+  editButton: {
+    backgroundColor: '#FFE031'
+  },
+  deleteButton: {
+    backgroundColor: '#d7263d'
   }
 });

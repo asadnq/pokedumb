@@ -4,11 +4,17 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
+  ScrollView
 } from 'react-native';
-import { Text, Image, Input } from 'react-native-elements';
+import { Text, Image, Input, Button } from 'react-native-elements';
 import { connect } from 'react-redux';
-import { getPokemons, searchPokemon } from '../store/actions/pokemon';
+import {
+  getPokemons,
+  searchPokemon,
+  getMorePokemons,
+  getPokemon
+} from '../store/actions/pokemon';
 import { getPokemonTypes } from '../store/actions/pokemon_type';
 
 import ListPokemon from '../components/ListPokemon';
@@ -21,17 +27,35 @@ class Home extends React.Component {
       control: {
         search: ''
       },
-      typingTimeout: 0
+      typingTimeout: 0,
+      pagination: {
+        page: 1,
+        limit: 10
+      }
     };
   }
 
-  _toPokemonDetail = id => {
-    alert(id);
+  _getMorePokemons = () => {
+    this.setState(
+      state => ({
+        ...state,
+        pagination: {
+          ...state.pagination,
+          page: state.pagination.page + 1
+        }
+      }),
+      () => this.props.getMorePokemons(this.state.pagination.page, this.state.pagination.limit)
+    );
+  };
+
+  _toPokemonDetail = pokemon => {
+    this.props.navigation.push('PokemonDetail', { pokemon });
+    this.props.getPokemon(pokemon.id)
   };
 
   _toAddPokemon = () => {
-    this.props.navigation.navigate('AddPokemon')
-  }
+    this.props.navigation.navigate('AddPokemon');
+  };
 
   _searchHandler = val => {
     if (this.state.typingTimeout) {
@@ -71,21 +95,36 @@ class Home extends React.Component {
             value={this.state.control.search}
           />
         </View>
-        {this.props.isLoading ? (
-          <ActivityIndicator />
-        ) : (
-          <FlatList
-            data={this.props.pokemons}
-            keyExtractor={(item, index) => 'list ' + item.id}
-            renderItem={({ item }) => (
-              <ListPokemon
-                {...item}
-                onListPress={this._toPokemonDetail.bind(this, item.id)}
-              />
-            )}
+        <ScrollView>
+          {this.props.isLoading ? (
+            <ActivityIndicator />
+          ) : (
+            <React.Fragment>
+            <FlatList
+              data={this.props.pokemons}
+              keyExtractor={(item, index) => 'list ' + item.id}
+              renderItem={({ item }) => (
+                <ListPokemon
+                  {...item}
+                  onListPress={this._toPokemonDetail.bind(this, item)}
+                />
+              )}
+            />
+          <Button
+            title="load more"
+            onPress={this._getMorePokemons}
+            buttonStyle={{ width: '50%', alignSelf: 'center', backgroundColor: '#396BBA'}}
           />
-        )}
-        <FAB iconName="add" iconSize={32} iconColor="#FFF" onPress={this._toAddPokemon}/>
+          </React.Fragment>
+          )}
+        </ScrollView>
+        <Text>{this.state.pagination.page}</Text>
+        <FAB
+          iconName="add"
+          iconSize={32}
+          iconColor="#FFF"
+          onPress={this._toAddPokemon}
+        />
       </View>
     );
   }
@@ -100,5 +139,5 @@ const mapState = state => {
 
 export default connect(
   mapState,
-  { getPokemons, searchPokemon, getPokemonTypes }
+  { getPokemons, searchPokemon, getPokemonTypes, getMorePokemons, getPokemon }
 )(Home);

@@ -19,12 +19,14 @@ const user = (state = initialState, action) => {
         ...state,
         user: action.payload.data.user,
         access_token: action.payload.data.access_token,
+        isAuthenticated: true
       };
     case LOGIN_REJECTED:
       return {
         ...state,
         user: {},
         access_token: {},
+        isAuthenticated: false
       };
     default:
       return state;
