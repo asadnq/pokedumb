@@ -2,8 +2,6 @@ import React from 'react';
 import {
   View,
   FlatList,
-  StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   ScrollView
 } from 'react-native';
@@ -17,8 +15,8 @@ import {
 } from '../store/actions/pokemon';
 import { getPokemonTypes } from '../store/actions/pokemon_type';
 
-import ListPokemon from '../components/ListPokemon';
 import FAB from '../components/buttons/FAB';
+import PokemonCard from '../components/cards/PokemonCard';
 
 class Home extends React.Component {
   constructor() {
@@ -31,9 +29,14 @@ class Home extends React.Component {
       pagination: {
         page: 1,
         limit: 10
-      }
+      },
+      isFiltered: false
     };
   }
+
+  static navigationOptions = ({ navigation }) => ({
+    title: 'Home'
+  });
 
   _getMorePokemons = () => {
     this.setState(
@@ -44,17 +47,25 @@ class Home extends React.Component {
           page: state.pagination.page + 1
         }
       }),
-      () => this.props.getMorePokemons(this.state.pagination.page, this.state.pagination.limit)
+      () =>
+        this.props.getMorePokemons(
+          this.state.pagination.page,
+          this.state.pagination.limit
+        )
     );
   };
 
   _toPokemonDetail = pokemon => {
     this.props.navigation.push('PokemonDetail', { pokemon });
-    this.props.getPokemon(pokemon.id)
+    this.props.getPokemon(pokemon.id);
   };
 
   _toAddPokemon = () => {
-    this.props.navigation.navigate('AddPokemon');
+    if (this.props.isAuthenticated) {
+      this.props.navigation.navigate('AddPokemon');
+    } else {
+      this.props.navigation.navigate('Login');
+    }
   };
 
   _searchHandler = val => {
@@ -79,46 +90,65 @@ class Home extends React.Component {
     });
   };
 
+  _filterPokemons = () => {
+    this.setState({ isFiltered: true });
+  };
+
+  _toFilterPokemon = () => {
+    this.props.navigation.navigate('FilterPokemon', {
+      filter: this._filterPokemons.bind(this)
+    });
+  };
+
   componentDidMount() {
-    this.props.getPokemons();
+    if (!this.state.isFiltered) {
+      this.props.getPokemons();
+    }
+
     this.props.getPokemonTypes();
   }
 
   render() {
     return (
       <View style={{ height: '100%' }}>
-        <View>
+        <View style={{ flexDirection: 'row' }}>
           <Input
             placeholder="search pokemon..."
             inputContainerStyle={{ borderBottomColor: 'rgba(0,0,0,0)' }}
             onChangeText={this._searchHandler}
+            containerStyle={{ width: '70%', borderRightWidth: 1 }}
             value={this.state.control.search}
+            leftIcon={{
+              name: 'search',
+              size: 20
+            }}
+          />
+          <Button
+            type="clear"
+            title="filter"
+            onPress={this._toFilterPokemon}
+            containerStyle={{ width: '30%' }}
           />
         </View>
-        <ScrollView>
+        <ScrollView style={{width: '100%'}}>
           {this.props.isLoading ? (
             <ActivityIndicator />
           ) : (
-            <React.Fragment>
             <FlatList
+              numColumns={2}
               data={this.props.pokemons}
               keyExtractor={(item, index) => 'list ' + item.id}
               renderItem={({ item }) => (
-                <ListPokemon
+                <PokemonCard
                   {...item}
-                  onListPress={this._toPokemonDetail.bind(this, item)}
+                  onCardPress={this._toPokemonDetail.bind(this, item)}
                 />
               )}
+              onEndReached={this._getMorePokemons}
+              onEndReachedThreshold={0.5}
             />
-          <Button
-            title="load more"
-            onPress={this._getMorePokemons}
-            buttonStyle={{ width: '50%', alignSelf: 'center', backgroundColor: '#396BBA'}}
-          />
-          </React.Fragment>
           )}
         </ScrollView>
-        <Text>{this.state.pagination.page}</Text>
         <FAB
           iconName="add"
           iconSize={32}
@@ -133,7 +163,8 @@ class Home extends React.Component {
 const mapState = state => {
   return {
     pokemons: state.pokemon.pokemons,
-    isLoading: state.pokemon.isLoading
+    isLoading: state.pokemon.isLoading,
+    isAuthenticated: state.user.isAuthenticated
   };
 };
 

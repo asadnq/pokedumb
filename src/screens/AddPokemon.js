@@ -7,14 +7,24 @@ import {
   Dimensions,
   ScrollView
 } from 'react-native';
-import { Input, Image, Text, Button } from 'react-native-elements';
+import { Image, Text, Button, ThemeProvider, Input } from 'react-native-elements';
 import { connect } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
-import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 
 import { addPokemon } from '../store/actions/pokemon';
 import typeColor from '../components/misc/typeColor';
+import ImagePickerModal from '../components/modals/ImagePicker';
+import TypePickerModal from '../components/modals/TypePicker';
+import theme from '../themes/theme';
+
+const initialRegion = {
+  latitude: -6.301914,
+  longitude: 106.734163,
+  latitudeDelta: 0.0922,
+  longitudeDelta: 0.0421
+};
 
 class AddPokemon extends React.Component {
   constructor() {
@@ -38,8 +48,15 @@ class AddPokemon extends React.Component {
   static navigationOptions = ({ navigation }) => ({
     title: 'add pokemon',
     headerRight: (
-      <Button title="add" onPress={navigation.getParam('addPokemon')} type="clear" />
-    )
+      <Button
+        title="add"
+        onPress={navigation.getParam('addPokemon')}
+        type="clear"
+      />
+    ),
+    headerStyle: {
+      backgroundColor: '#58B09C'
+    }
   });
 
   _addPokemonHandler = () => {
@@ -57,8 +74,8 @@ class AddPokemon extends React.Component {
     data.append('name', name);
     data.append('type', JSON.stringify(type));
     data.append('category', category);
-    data.append('latitude', latitude)
-    data.append('longitude', longitude)
+    data.append('latitude', latitude);
+    data.append('longitude', longitude);
 
     this.props.addPokemon(data);
 
@@ -175,8 +192,8 @@ class AddPokemon extends React.Component {
       ...state,
       control: {
         ...state.control,
-      latitude: coords.latitude,
-      longitude: coords.longitude
+        latitude: coords.latitude,
+        longitude: coords.longitude
       }
     }));
   };
@@ -189,8 +206,7 @@ class AddPokemon extends React.Component {
 
   componentDidMount() {
     this.props.navigation.setParams({
-      addPokemon: this._addPokemonHandler.bind(this),
-      dummy: 'test'
+      addPokemon: this._addPokemonHandler.bind(this)
     });
   }
 
@@ -206,7 +222,7 @@ class AddPokemon extends React.Component {
             flexDirection: 'row',
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: '#ccc',
+            backgroundColor: '#eee',
             height: height * 0.4
           }}
         >
@@ -231,168 +247,110 @@ class AddPokemon extends React.Component {
 
     return (
       <View>
-        <Modal
-          isVisible={this.state.modalVisible.pickImage}
-          animationIn="flash"
-          animationOut="fadeOut"
-          style={{ alignItems: 'center' }}
-          onBackdropPress={this._pickImageModalVisibilityHandler}
-        >
-          <View style={styles.pickImageModal}>
-            <View
-              style={{
-                borderBottomColor: '#ccc',
-                borderBottomWidth: 0.87,
-                width: '100%',
-                padding: '3%',
-                height: '15%',
-                alignItems: 'center'
-              }}
-            >
-              <Text style={{ fontWeight: 'bold', fontSize: width * 0.05 }}>
-                Choose...
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'column', height: '85%' }}>
-              <Button
-                type="clear"
-                onPress={this._openCameraHandler}
-                title="open camera"
-                titleStyle={{ fontWeight: 'bold' }}
-              />
-              <Button
-                type="clear"
-                onPress={this._openLibraryHandler}
-                title="open galery"
-              />
-              <Button
-                type="clear"
-                title="close"
-                onPress={this._pickImageModalVisibilityHandler}
-                containerStyle={{ borderTopColor: '#333' }}
-              />
-            </View>
-          </View>
-        </Modal>
-        <Modal
-          isVisible={this.state.modalVisible.pokemonType}
-          animationIn="flash"
-          animationOut="fadeOut"
-          style={{ alignItems: 'center' }}
-          onBackdropPress={this._typeModalVisibilityHandler}
-        >
-          <View style={styles.pickTypeModal}>
-            <View
-              style={{
-                alignItems: 'center',
-                padding: 5,
-                borderBottomWidth: 0.8,
-                borderColor: '#eee'
-              }}
-            >
-              <Text style={{ fontSize: 18 }}>Select pokemon type</Text>
-            </View>
-            <FlatList
-              data={this.props.pokemon_types}
-              keyExtractor={item => 'key ' + item.id}
-              renderItem={({ item }) => {
-                if (!this.state.control.type.includes(item)) {
-                  return (
-                    <TouchableOpacity
-                      onPress={this._pickTypeHandler.bind(this, item)}
-                      style={{
-                        flexDirection: 'row',
-                        paddingVertical: 10,
-                        justifyContent: 'center'
-                      }}
-                      disabled={this.state.control.type.includes(item)}
-                    >
-                      <Text>{item.name}</Text>
-                    </TouchableOpacity>
-                  );
-                }
-              }}
-            />
-            <Button
-              title="close"
-              type="outline"
-              onPress={this._typeModalVisibilityHandler}
-            />
-          </View>
-        </Modal>
-        <ScrollView style={{ paddingHorizontal: width * .02 }}>
-          {imageComponent}
-          <Button
-            onPress={this._pickImageModalVisibilityHandler}
-            containerStyle={{ alignSelf: 'center' }}
-            title="pick image"
-            type="clear"
+        <ThemeProvider theme={theme.form}>
+          <ImagePickerModal
+            isVisible={this.state.modalVisible.pickImage}
+            visibilityHandler={this._pickImageModalVisibilityHandler}
+            cameraButtonOnPress={this._openCameraHandler}
+            libraryButtonOnPress={this._openLibraryHandler}
           />
-          <View
+          <TypePickerModal
+            isVisible={this.state.modalVisible.pokemonType}
+            visibilityHandler={this._typeModalVisibilityHandler}
+            onTypePress={this._pickTypeHandler.bind(this)}
+            data={this.props.pokemon_types}
+            currentData={this.state.control.type}
+          />
+          <ScrollView
             style={{
-              justifyContent: 'space-between',
-              flexDirection: 'column',
-              height: height * .28
+              paddingHorizontal: width * 0.02,
+              backgroundColor: '#E6EAFF'
             }}
           >
-            <Input
-              onChangeText={this._inputNameHandler}
-              value={this.state.control.name}
-              placeholder="Insert pokemon name..."
+            {imageComponent}
+            <Button
+              onPress={this._pickImageModalVisibilityHandler}
+              title="pick image"
             />
-            <Input
-              onChangeText={this._inputCategoryHandler}
-              value={this.state.control.category}
-              placeholder="Insert pokemon category..."
-            />
-            <View style={{flexDirection: 'row'}}>
-              <Input value={this.state.control.latitude.toString()} editable={false} containerStyle={{width: '50%'}} />
-              <Input value={this.state.control.longitude.toString()} editable={false} containerStyle={{width: '50%'}}/>
+            <View
+              style={{
+                justifyContent: 'space-evenly',
+                flexDirection: 'column',
+                height: height * 0.25
+              }}
+            >
+              <Input
+                onChangeText={this._inputNameHandler}
+                value={this.state.control.name}
+                label="name"
+              />
+              <Input
+                onChangeText={this._inputCategoryHandler}
+                value={this.state.control.category}
+                label="category"
+              />
             </View>
-          </View>
-          <View style={{ height: height * .08, marginVertical: height * .01 }}>
-            <FlatList
-              data={this.state.control.type}
-              horizontal={true}
-              keyExtractor={(item, index) => 'key ' + index}
-              style={{ marginVertical: height * 0.005 }}
-              contentContainerStyle={{
-                justifyContent: 'center',
-                flexDirection: 'row'
+            <View style={{ flexDirection: 'column' }}>
+              <Button
+                onPress={this._typeModalVisibilityHandler}
+                title="select type"
+                type="clear"
+              />
+            </View>
+            <View
+              style={{ height: height * 0.08, marginVertical: height * 0.01 }}
+            >
+              <FlatList
+                data={this.state.control.type}
+                horizontal={true}
+                keyExtractor={(item, index) => 'key ' + index}
+                style={{ marginVertical: height * 0.005 }}
+                contentContainerStyle={{
+                  justifyContent: 'center',
+                  flexDirection: 'row'
+                }}
+                renderItem={({ item }) => {
+                  return (
+                    <TouchableOpacity
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginRight: width * 0.02,
+                        borderRadius: 3,
+                        backgroundColor: typeColor(item.name),
+                        marginVertical: 5,
+                        width: width * 0.22
+                      }}
+                      onPress={this._removeTypehandler.bind(this, item.id)}
+                    >
+                      <Text style={{ color: '#eee' }}>{item.name}</Text>
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            </View>
+            <View
+              style={{
+                height: height * 0.4,
+                justifyContent: 'space-evenly',
+                flexDirection: 'column',
+                marginBottom: height * 0.05
               }}
-              renderItem={({ item }) => {
-                return (
-                  <TouchableOpacity
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginRight: width * 0.02,
-                      borderRadius: 3,
-                      backgroundColor: typeColor(item.name),
-                      marginVertical: 5,
-                      width: width * 0.22
-                    }}
-                    onPress={this._removeTypehandler.bind(this, item.id)}
-                  >
-                    <Text style={{ color: '#eee' }}>{item.name}</Text>
-                  </TouchableOpacity>
-                );
-              }}
-            />
-          </View>
-          <View style={{ flexDirection: 'row' }}>
-            <Button
-              title="pick location"
-              onPress={this._toPickLocation}
-            />
-            <Button
-              onPress={this._typeModalVisibilityHandler}
-              title="select type"
-              type="outline"
-            />
-          </View>
-        </ScrollView>
+            >
+              <MapView
+                provider={PROVIDER_GOOGLE}
+                initialRegion={initialRegion}
+                style={{ width: width, height: height * 0.3 }}
+              />
+              <Button
+                type="clear"
+                title="pick location"
+                onPress={this._toPickLocation}
+              />
+            </View>
+          </ScrollView>
+        </ThemeProvider>
       </View>
     );
   }

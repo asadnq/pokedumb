@@ -30,9 +30,9 @@ const ListPokemon = props => {
               <Text>{props.category.name}</Text>
             </View>   
             <View style={{flexDirection: 'column', width: '50%'}}>
-              <Text style={{color: '#222'}}>type: </Text>
+              <Text style={{color: '#222'}}>types: </Text>
               <FlatList 
-                data={props.type}
+                data={props.types}
                 keyExtractor={item => item.id + ' key'}
                 horizontal={true}
                 renderItem={({item}) => <ListType type={item.name} text={item.name} />}

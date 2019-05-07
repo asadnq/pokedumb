@@ -1,3 +1,4 @@
+import React from 'react'
 import {
   createAppContainer,
   createStackNavigator,
@@ -12,6 +13,7 @@ import PokeMap from '../screens/PokeMap';
 import Login from '../screens/Auth/Login';
 import EditPokemon from '../screens/EditPokemon'
 import PickLocation from '../screens/PickLocation'
+import FilterPokemon from '../screens/FilterPokemon'
 
 const MainTab = createMaterialTopTabNavigator({
   Home: {
@@ -22,7 +24,16 @@ const MainTab = createMaterialTopTabNavigator({
   },
 },
 {
-  initialRouteName: 'PokeMap'
+  initialRouteName: 'Home',
+  tabBarPosition: 'top',
+  tabBarOptions: {
+    labelStyle: {
+      fontSize: 12,
+    },
+    style: {
+      backgroundColor: '#58B09C',
+    },
+  }
 }
 );
 
@@ -30,6 +41,9 @@ const MainStack = createStackNavigator(
   {
     MainTab: {
       screen: MainTab,
+      navigationOptions: {
+        header: null
+      }
     },
     AddPokemon: {
       screen: AddPokemon,
@@ -42,6 +56,9 @@ const MainStack = createStackNavigator(
     },
     PickLocation: {
       screen: PickLocation
+    },
+    FilterPokemon: {
+      screen: FilterPokemon
     }
   },
   {

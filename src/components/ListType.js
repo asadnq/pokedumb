@@ -1,31 +1,26 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
-import {Text} from 'react-native-elements';
-import typeColor from '../components/misc/typeColor'
+import { View, StyleSheet, Dimensions } from 'react-native';
+import { Text, Badge } from 'react-native-elements';
+import typeColor from '../components/misc/typeColor';
+
+const { width, height } = Dimensions.get('window');
 
 const ListType = props => {
+  let bgColor = typeColor(props.type);
 
-let bgColor = typeColor(props.type)
-
-  return(
-
-  <View style={[{...styles.container, backgroundColor: bgColor}]} key={props.key}>
-    <Text style={styles.text}>{props.text}</Text>
-  </View>
-  )
-}
-
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 8,
-    borderColor: '#ddd',
-    borderWidth: 0.78,
-    backgroundColor: 'hsla(0, 0%, 06%, .2)',
-    borderRadius: 30,
-  },
-  text: {
-    color: '#fff',
-  },
-});
+  return (
+    <Badge
+      value={props.text}
+      badgeStyle={StyleSheet.flatten([
+        {
+          backgroundColor: bgColor,
+          paddingHorizontal: width * 0.005,
+          paddingVertical: width * 0.00085
+        }
+      ])}
+    {...props}
+    />
+  );
+};
 
 export default ListType;

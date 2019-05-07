@@ -75,7 +75,7 @@ class PickLocation extends React.Component {
 
   _pickLocationHandler = () => {
     this.props.navigation.state.params.setCoordinate(this.state.region)
-    this.props.navigation.goBack()
+    this.props.navigation.goBack();
   }
 
   render() {

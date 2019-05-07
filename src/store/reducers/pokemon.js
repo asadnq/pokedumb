@@ -30,6 +30,7 @@ const pokemon = (state = initialState, action) => {
         isLoading: true
       };
     case GET_POKEMONS_FULFILLED:
+    console.log(action.payload.data)
       return {
         ...state,
         pokemons: action.payload.data.data,

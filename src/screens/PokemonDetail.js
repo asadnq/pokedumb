@@ -2,8 +2,6 @@ import React from 'react';
 import { View, StyleSheet, FlatList, Dimensions } from 'react-native';
 import { Button, Input, Text, Image } from 'react-native-elements';
 import { connect } from 'react-redux';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-
 
 import { deletePokemon } from '../store/actions/pokemon';
 
@@ -12,17 +10,24 @@ import ListType from '../components/ListType';
 
 class PokemonDetail extends React.Component {
   _deletePokemonHandler = pokemon => {
+    if(this.props.user.isAuthenticated) {
     this.props.deletePokemon(pokemon);
     this.props.navigation.navigate('Home');
+    } else {
+      this.props.navigation.navigate('Login')
+    }
   };
 
-  _toEditPokemon = pokemon => {
-    this.props.navigation.navigate('EditPokemon', { pokemon })
+  _toEditPokemon = () => {
+    if(this.props.user.isAuthenticated) {
+    this.props.navigation.navigate('EditPokemon')
+    } else {
+      this.props.navigation.navigate('Login')
+    }
   }
 
   render() {
     const { pokemon } = this.props.navigation.state.params;
-
       
     return (
       <View style={{ height: '100%' }}>
@@ -56,7 +61,7 @@ class PokemonDetail extends React.Component {
             >
               <Text style={{ fontSize: width * 0.04 }}>type: </Text>
               <FlatList
-                data={pokemon.type}
+                data={pokemon.types}
                 keyExtractor={item => 'key ' + item.id}
                 horizontal={true}
                 inverted={true}
@@ -103,7 +108,8 @@ class PokemonDetail extends React.Component {
 
 const mapState = state => {
   return {
-    pokemon: state.pokemon.pokemon
+    pokemon: state.pokemon.pokemon,
+    user: state.user
   };
 };
 
@@ -133,13 +139,13 @@ const styles = StyleSheet.create({
   },
   pokemonCategory: {},
   editButtonContainer: {
-    width: '73%'
+    width: '60%'
   },
   deleteButtonContainer: {
-    width: '25%'
+    width: '35%'
   },
   editButton: {
-    backgroundColor: '#FFE031'
+    backgroundColor: '#09814A'
   },
   deleteButton: {
     backgroundColor: '#d7263d'

@@ -3,12 +3,16 @@ import {Provider} from 'react-redux';
 
 import RootNavigation from './src/navigations/';
 import store from './src/store/store';
+import NavigationService from './src/navigations/NavigationService';
 
 class App extends React.Component {
   render() {
     return (
       <Provider store={store}>
-        <RootNavigation />
+        <RootNavigation
+          ref={navigationRef => {
+            NavigationService.setTopLevelNavigator(navigationRef)
+          }}/>
       </Provider>
     );
   }

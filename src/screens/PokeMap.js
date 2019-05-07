@@ -4,6 +4,9 @@ import { Input, Image, Text, Button } from 'react-native-elements';
 import { connect } from 'react-redux';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 
+import { getPokemon } from '../store/actions/pokemon'
+import { POKEMON_IMG_PATH } from '../config/url.config';
+
 const LATITUDE_DELTA = 0.01;
 const LONGITUED_DELTA = 0.01;
 
@@ -29,7 +32,8 @@ class PokeMap extends React.Component {
       region: {
         ...state.region,
         ...region
-      }
+      },
+      locationPick: true
     }));
   };
 
@@ -55,7 +59,7 @@ class PokeMap extends React.Component {
         { enableHighAccuracy: true, timeout: 2000 }
       );
     } catch (err) {
-      alert(err);
+      alert('error occured.');
     }
   };
 
@@ -72,34 +76,66 @@ class PokeMap extends React.Component {
     }));
   };
 
+  _renderMarkers = () => {
+    let markers = [];
+    this.props.pokemons.map(pokemon => {
+      markers.push(
+        <Marker
+          key={pokemon.id}
+          coordinate={{
+            latitude: pokemon.latitude,
+            longitude: pokemon.longitude
+          }}
+          onPress={() => {
+            this.props.navigation.push('PokemonDetail', { pokemon });
+            this.props.getPokemon(pokemon.id);
+          }}
+        >
+          <Image
+            source={{ uri: POKEMON_IMG_PATH + pokemon.image_url }}
+            containerStyle={{
+              width: 30,
+              height: 30,
+              flexDirection: 'row',
+              alignSelf: 'stretch'
+            }}
+            style={{
+              width: undefined,
+              height: undefined,
+              alignSelf: 'stretch',
+              flex: 1
+            }}
+            resizeMode="contain"
+          />
+        </Marker>
+      );
+    });
+    return markers;
+  };
+
   render() {
-    let marker;
-    if(this.state.locationPick) {
-        marker = (<Marker coordinate={this.state.region} />)
-    }
     return (
       <View>
-        <Text>Map Screen</Text>
         <MapView
           ref={map => (this.map = map)}
           showsUserLocation={true}
           provider={PROVIDER_GOOGLE}
-          style={{ width: '100%', height: '80%' }}
+          style={{ width: '100%', height: '100%' }}
           initialRegion={initialRegion}
           region={this.state.region}
           onPress={this._onPressMap}
         >
-        {marker}
+          {this._renderMarkers()}
         </MapView>
-        <Button
-          title="get current location"
-          onPress={this._getCurrentPosition}
-        />
-        <Text>latitude: {this.state.region.latitude}</Text>
-        <Text>longitude: {this.state.region.longitude}</Text>
       </View>
     );
   }
 }
 
-export default connect(null)(PokeMap);
+const mapState = state => {
+  return {
+    pokemons: state.pokemon.pokemons
+  };
+};
+
+export default connect(mapState, { getPokemon })(PokeMap);

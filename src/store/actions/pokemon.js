@@ -13,6 +13,8 @@ import {
   GET_POKEMON
 } from './types';
 import instance from './axios.config';
+import NavigationService from '../../navigations/NavigationService';
+import store from '../store';
 
 export const getPokemons = () => {
   return {
@@ -31,11 +33,15 @@ export const getPokemon = id => {
 export const searchPokemon = q => {
   return {
     type: GET_POKEMONS,
-    payload: instance.get('/pokemons/search/' + q)
+    payload: instance.get(`/pokemons?name_like=${q}&category=${q}`)
   };
 };
 
-export const addPokemon = pokemon => dispatch => {
+export const addPokemon = pokemon => (dispatch, getState) => {
+  const isAuthenticated = getState().user.isAuthenticated;
+  if(!isAuthenticated) {
+    NavigationService.navigate('Login')
+  }
   return {
     type: ADD_POKEMON,
     payload: instance
@@ -64,6 +70,8 @@ export const updatePokemon = (id, data) => dispatch => {
         type: UPDATE_POKEMON_FULFILLED,
         payload: res
         });
+        NavigationService.back()
+        alert('updated')
       })
       .catch(() => {
         dispatch({
@@ -79,14 +87,30 @@ export const deletePokemon = pokemon => dispatch => {
     payload: instance.delete('/pokemons/' + pokemon.id)
     .then(res => {
       dispatch({type: DELETE_POKEMON_FULFILLED, payload: res})
+      NavigationService.navigate('Home')
     })
     .catch(() => dispatch({type:DELETE_POKEMON_REJECTED}))
   };
 };
 
+let getPokemonsUrl;
+
 export const getMorePokemons = (page, limit) => {
+
+  getPokemonsUrl = `/pokemons?page=${page}&limit=${limit}`;
+
   return {
     type: GET_MORE_POKEMONS,
     payload: instance.get(`/pokemons?page=${page}&limit=${limit}`)
+  }
+}
+
+export const filterPokemon = (category, types) => {
+
+  getPokemonsUrl = `${getPokemonsUrl}&category=${category}&types=${types}`;
+
+  return {
+    type: GET_POKEMONS,
+    payload: instance.get(`/pokemons?category=${category}&type_in=${types}`)
   }
 }

@@ -4,19 +4,30 @@ import {
   StyleSheet,
   FlatList,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+  ScrollView
 } from 'react-native';
-import { Button, Input, Text, Image } from 'react-native-elements';
+import {
+  Button,
+  Text,
+  Image,
+  Input,
+  ThemeProvider
+} from 'react-native-elements';
 import { connect } from 'react-redux';
-import Modal from 'react-native-modal';
 import ImagePicker from 'react-native-image-crop-picker';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { NavigationEvents } from 'react-navigation';
+import MapView, { GOOGLE_PROVIDER } from 'react-native-maps';
 
 import { updatePokemon } from '../store/actions/pokemon';
 import { POKEMON_IMG_PATH } from '../config/url.config';
 import typeColor from '../components/misc/typeColor';
+import ImagePickerModal from '../components/modals/ImagePicker';
+import TypePickerModal from '../components/modals/TypePicker';
+import theme from '../themes/theme';
+
+const LATITUDE_DELTA = 0.01;
+const LONGITUED_DELTA = 0.01;
 
 class EditPokemon extends React.Component {
   constructor(props) {
@@ -27,12 +38,13 @@ class EditPokemon extends React.Component {
         name: '',
         category: '',
         image: {
-          path:  ''
+          path: ''
         },
         type: [],
         latitude: 0.0,
         longitude: 0
       },
+      locationPicked: true,
       modalVisible: {
         pokemonType: false,
         pickImage: false
@@ -41,9 +53,44 @@ class EditPokemon extends React.Component {
     };
   }
 
+  static navigationOptions = ({ navigation }) => ({
+    title: 'edit pokemon',
+    headerRight: (
+      <Button
+        title="save"
+        onPress={navigation.getParam('updatePokemon')}
+        type="clear"
+      />
+    ),
+    headerStyle: {
+      backgroundColor: '#58B09C'
+    }
+  });
+
+  componentDidMount() {}
+
+  _typeModalVisibilityHandler = () => {
+    this.setState(state => ({
+      ...state,
+      modalVisible: {
+        ...state.modalVisible,
+        pokemonType: !state.modalVisible.pokemonType
+      }
+    }));
+  };
+
+  _pickImageModalVisibilityHandler = () => {
+    this.setState(state => ({
+      ...state,
+      modalVisible: {
+        ...state.modalVisible,
+        pickImage: !state.modalVisible.pickImage
+      }
+    }));
+  };
+
   _updatePokemonHandler = () => {
     const { name, category, type, latitude, longitude } = this.state.control;
-
     let data = new FormData();
 
     if (this.state.imageReplaced) {
@@ -57,22 +104,10 @@ class EditPokemon extends React.Component {
     data.append('name', name);
     data.append('type', JSON.stringify(type));
     data.append('category', category);
-    data.append('latitude', latitude)
-    data.append('longitude', longitude)
+    data.append('latitude', latitude);
+    data.append('longitude', longitude);
 
     this.props.updatePokemon(this.props.pokemon.id, data);
-
-    this.setState(state => ({
-      ...state,
-      control: {
-        ...state.control,
-        name: '',
-        type: [],
-        category: '',
-        latitude: 0,
-        longitude: 0
-      }
-    }));
   };
 
   _openLibraryHandler = () => {
@@ -153,42 +188,47 @@ class EditPokemon extends React.Component {
     }));
   };
 
-  _typeModalVisibilityHandler = () => {
-    this.setState(state => ({
-      ...state,
-      modalVisible: {
-        ...state.modalVisible,
-        pokemonType: !state.modalVisible.pokemonType
-      }
-    }));
-  };
-
-  _pickImageModalVisibilityHandler = () => {
-    this.setState(state => ({
-      ...state,
-      modalVisible: {
-        ...state.modalVisible,
-        pickImage: !state.modalVisible.pickImage
-      }
-    }));
-  };
-
-  _setCoordinate = coords => {
+  _pickCoordinate = coords => {
     this.setState(state => ({
       ...state,
       control: {
         ...state.control,
-      latitude: coords.latitude,
-      longitude: coords.longitude
+        latitude: coords.latitude,
+        longitude: coords.longitude
       }
     }));
   };
 
-  _toPickLocation = () => {
-    this.props.navigation.navigate('PickLocation', {
-      setCoordinate: this._setCoordinate.bind(this)
-    });
+  _onPressMap = event => {
+    const coords = event.nativeEvent.coordinate;
+    this.setState(state => ({
+      ...state,
+      control: {
+        ...state.control,
+        latitude: coords.latitude,
+        longitude: coords.longitude
+      },
+      locationPicked: true
+    }));
   };
+
+  componentDidMount() {
+    const { pokemon } = this.props;
+
+    this.setState(state => ({
+      ...state,
+      control: {
+        name: pokemon.name,
+        category: pokemon.category.name,
+        type: pokemon.type,
+        image: {
+          path: pokemon.image_url
+        },
+        latitude: pokemon.latitude,
+        longitude: pokemon.longitude
+      }
+    }));
+  }
 
   render() {
     const { control } = this.state;
@@ -196,113 +236,32 @@ class EditPokemon extends React.Component {
     return (
       <View>
         <NavigationEvents
-          onWillFocus={() => {
-            const { pokemon } = this.props.navigation.state.params;
-
-            this.setState(state => ({
-              ...state,
-              control: {
-                ...pokemon,
-                category: pokemon.category.name,
-                image: {
-                  path: pokemon.image_url
-                },
-                ...state.control
-              }
-            }));
-          }}
+          onWillFocus={() =>
+            this.props.navigation.setParams({
+              updatePokemon: this._updatePokemonHandler
+            })
+          }
         />
-        <Modal
+        <ImagePickerModal
           isVisible={this.state.modalVisible.pickImage}
-          animationIn="flash"
-          animationOut="fadeOut"
-          style={{ alignItems: 'center' }}
-          onBackdropPress={this._pickImageModalVisibilityHandler}
-        >
-          <View style={styles.pickImageModal}>
-            <View
-              style={{
-                borderBottomColor: '#ccc',
-                borderBottomWidth: 0.87,
-                width: '100%',
-                padding: '3%',
-                height: '15%',
-                alignItems: 'center'
-              }}
-            >
-              <Text style={{ fontWeight: 'bold', fontSize: width * 0.05 }}>
-                Choose...
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'column', height: '85%' }}>
-              <Button
-                type="clear"
-                onPress={this._openCameraHandler}
-                title="open camera"
-                titleStyle={{ fontWeight: 'bold' }}
-              />
-              <Button
-                type="clear"
-                onPress={this._openLibraryHandler}
-                title="open galery"
-              />
-              <Button
-                type="clear"
-                title="close"
-                onPress={this._pickImageModalVisibilityHandler}
-                containerStyle={{ borderTopColor: '#333' }}
-              />
-            </View>
-          </View>
-        </Modal>
-        <Modal
+          visibilityHandler={this._pickImageModalVisibilityHandler}
+          cameraButtonOnPress={this._openCameraHandler}
+          libraryButtonOnPress={this._openLibraryHandler}
+        />
+        <TypePickerModal
           isVisible={this.state.modalVisible.pokemonType}
-          animationIn="flash"
-          animationOut="fadeOut"
-          style={{ alignItems: 'center' }}
-          onBackdropPress={this._typeModalVisibilityHandler}
+          visibilityHandler={this._typeModalVisibilityHandler}
+          onTypePress={this._pickTypeHandler.bind(this)}
+          data={this.props.pokemon_types}
+          currentData={this.state.control.type}
+        />
+        <ScrollView
+          style={{
+            paddingHorizontal: width * 0.02,
+            backgroundColor: '#E6EAFF'
+          }}
         >
-          <View style={styles.pickTypeModal}>
-            <View
-              style={{
-                alignItems: 'center',
-                padding: 5,
-                borderBottomWidth: 0.8,
-                borderColor: '#eee'
-              }}
-            >
-              <Text style={{ fontSize: 18 }}>Select pokemon type</Text>
-            </View>
-            <FlatList
-              data={this.props.pokemon_types}
-              keyExtractor={item => 'key ' + item.id}
-              renderItem={({ item }) => {
-                if (!control.type.includes(item)) {
-                  return (
-                    <TouchableOpacity
-                      onPress={this._pickTypeHandler.bind(this, item)}
-                      style={{
-                        flexDirection: 'row',
-                        paddingVertical: 10,
-                        justifyContent: 'center'
-                      }}
-                      disabled={this.state.control.type.includes(item)}
-                    >
-                      <Text>{item.name}</Text>
-                    </TouchableOpacity>
-                  );
-                }
-              }}
-            />
-            <Button
-              title="close"
-              type="outline"
-              onPress={this._typeModalVisibilityHandler}
-            />
-          </View>
-        </Modal>
-        <View style={{ height: '100%', flexDirection: 'column' }}>
-          <View>
+          <ThemeProvider theme={theme.form}>
             <Image
               source={{
                 uri: this.state.imageReplaced
@@ -318,82 +277,94 @@ class EditPokemon extends React.Component {
               type="clear"
               onPress={this._pickImageModalVisibilityHandler}
             />
-            <Input
-              label="name : "
-              value={control.name}
-              onChangeText={this._inputNameHandler}
-            />
-            <Input
-              label="category : "
-              value={control.category}
-              onChangeText={this._inputCategoryHandler}
-            />
-            <View style={{flexDirection: 'row'}}>
-              <Input value={this.state.control.latitude.toString()} editable={false} containerStyle={{width: '50%'}} />
-              <Input value={this.state.control.longitude.toString()} editable={false} containerStyle={{width: '50%'}}/>
-            </View>
-          <View style={{ flexDirection: 'row' }}>
-            <Button
-              title="pick location"
-              onPress={this._toPickLocation}
-            />
-            <Button
-              onPress={this._typeModalVisibilityHandler}
-              title="select type"
-              type="outline"
-            />
-          </View>
-            <FlatList
-              data={control.type}
-              horizontal={true}
-              renderItem={({ item }) => {
-                return (
-                  <TouchableOpacity
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginRight: width * 0.02,
-                      borderRadius: 3,
-                      backgroundColor: typeColor(item.name),
-                      marginVertical: 5,
-                      width: width * 0.22
-                    }}
-                    onPress={this._removeTypehandler.bind(this, item.id)}
-                  >
-                    <Text style={{ color: '#eee' }}>{item.name}</Text>
-                  </TouchableOpacity>
-                );
+            <View
+              style={{
+                justifyContent: 'space-evenly',
+                flexDirection: 'column',
+                height: height * 0.25
               }}
-              keyExtractor={item => 'key ' + item.id}
-            />
-          </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              padding: width * 0.02,
-              justifyContent: 'space-around',
-              height: height * 0.1,
-              position: 'absolute',
-              bottom: 0,
-              borderTopWidth: 0.78,
-              borderColor: '#ccc',
-              width: width
-            }}
-          >
-            <Button
-              title="save"
-              containerStyle={styles.saveButtonContainer}
-              buttonStyle={styles.saveButton}
-              onPress={this._updatePokemonHandler.bind(
-                this,
-                this.props.pokemon
-              )}
-              icon={{ name: 'save', size: 24, color: '#DDD' }}
-            />
-          </View>
-        </View>
+            >
+              <Input
+                label="name"
+                value={control.name}
+                onChangeText={this._inputNameHandler}
+              />
+              <Input
+                label="category"
+                value={control.category}
+                onChangeText={this._inputCategoryHandler}
+              />
+            </View>
+            <View
+              style={{
+                flexDirection: 'column',
+                height: height * 0.15,
+                justifyContent: 'space-around'
+              }}
+            >
+              <Button
+                onPress={this._typeModalVisibilityHandler}
+                title="select type"
+                type="clear"
+              />
+            </View>
+            <View
+              style={{ height: height * 0.08, marginVertical: height * 0.01 }}
+            >
+              <FlatList
+                data={control.type}
+                horizontal={true}
+                renderItem={({ item }) => {
+                  return (
+                    <TouchableOpacity
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginRight: width * 0.02,
+                        borderRadius: 3,
+                        backgroundColor: typeColor(item.name),
+                        marginVertical: 5,
+                        width: width * 0.22
+                      }}
+                      onPress={this._removeTypehandler.bind(this, item.id)}
+                    >
+                      <Text style={{ color: '#eee' }}>{item.name}</Text>
+                    </TouchableOpacity>
+                  );
+                }}
+                keyExtractor={item => 'key ' + item.id}
+              />
+            </View>
+            <View
+              style={{
+                height: height * 0.4,
+                justifyContent: 'space-evenly',
+                flexDirection: 'column',
+                marginBottom: height * 0.05
+              }}
+            >
+              <MapView
+                provider={GOOGLE_PROVIDER}
+                region={{
+                  latitude: this.state.control.latitude,
+                  longitude: this.state.control.longitude,
+                  latitudeDelta: LATITUDE_DELTA,
+                  longitudeDelta: LONGITUED_DELTA
+                }}
+                style={{ width: width, height: height * 0.3 }}
+                showsUserLocation={true}
+                ref={map => (this.map = map)}
+                onPress={this._onPressMap}
+              />
+              <Button
+                type="clear"
+                title="pick location"
+                onPress={this._pickCoordinate}
+              />
+            </View>
+          </ThemeProvider>
+        </ScrollView>
       </View>
     );
   }
@@ -447,14 +418,5 @@ const styles = StyleSheet.create({
   pokemonCategory: {},
   editButtonContainer: {
     width: '73%'
-  },
-  deleteButtonContainer: {
-    width: '25%'
-  },
-  editButton: {
-    backgroundColor: '#FFE031'
-  },
-  deleteButton: {
-    backgroundColor: '#d7263d'
   }
 });

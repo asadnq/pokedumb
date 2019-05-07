@@ -1,6 +1,7 @@
 import {LOGIN, LOGIN_FULFILLED, LOGIN_REJECTED} from './types';
 
 import instance from './axios.config';
+import NavigationService from '../../navigations/NavigationService'
 
 export const login = user => dispatch => {
   console.log(user);
@@ -11,6 +12,7 @@ export const login = user => dispatch => {
       .then(res => {
         dispatch({type: LOGIN_FULFILLED, payload: res});
         console.log(res);
+      NavigationService.navigate('Home')
       })
       .catch(err => {
         console.log(err);
