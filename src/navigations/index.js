@@ -14,6 +14,7 @@ import Login from '../screens/Auth/Login';
 import EditPokemon from '../screens/EditPokemon'
 import PickLocation from '../screens/PickLocation'
 import FilterPokemon from '../screens/FilterPokemon'
+import Register from '../screens/Auth/Register';
 
 const MainTab = createMaterialTopTabNavigator({
   Home: {
@@ -71,6 +72,9 @@ const AuthStack = createStackNavigator(
     Login: {
       screen: Login,
     },
+    Register: {
+      screen: Register
+    }
   },
   {
     InitialRouteName: 'Login',

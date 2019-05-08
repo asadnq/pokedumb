@@ -1,4 +1,4 @@
-import {LOGIN_PENDING, LOGIN_FULFILLED, LOGIN_REJECTED} from '../actions/types';
+import {LOGIN_PENDING, LOGIN_FULFILLED, LOGIN_REJECTED, REGISTER_PENDING, REGISTER_FULFILLED, REGISTER_REJECTED} from '../actions/types';
 import NavigationService from '../../navigations/NavigationService';
 
 const initialState = {
@@ -10,11 +10,13 @@ const initialState = {
 
 const user = (state = initialState, action) => {
   switch (action.type) {
+    case REGISTER_PENDING:
     case LOGIN_PENDING:
       return {
         ...state,
         isLoading: true,
       };
+    case REGISTER_FULFILLED:
     case LOGIN_FULFILLED:
       return {
         ...state,
@@ -22,6 +24,7 @@ const user = (state = initialState, action) => {
         access_token: action.payload.data.access_token,
         isAuthenticated: true
       };
+    case REGISTER_REJECTED:
     case LOGIN_REJECTED:
       return {
         ...state,
