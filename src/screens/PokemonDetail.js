@@ -19,7 +19,7 @@ class PokemonDetail extends React.Component {
   };
 
   _toEditPokemon = () => {
-    if(this.props.user.isAuthenticated) {
+    if(this.props.user.id === this.props.pokemon.user_id && this.props.isAuthenticated) {
     this.props.navigation.navigate('EditPokemon')
     } else {
       this.props.navigation.navigate('Login')
@@ -72,6 +72,8 @@ class PokemonDetail extends React.Component {
             </View>
           </View>
         </View>
+        {this.props.user.id === this.props.pokemon.user_id ?
+        
         <View
           style={{
             flexDirection: 'row',
@@ -101,6 +103,8 @@ class PokemonDetail extends React.Component {
             onPress={this._deletePokemonHandler.bind(this, pokemon)}
           />
         </View>
+        : null
+      }
       </View>
     );
   }
@@ -109,7 +113,8 @@ class PokemonDetail extends React.Component {
 const mapState = state => {
   return {
     pokemon: state.pokemon.pokemon,
-    user: state.user
+    user: state.user.user,
+    isAuthenticated: state.user.isAuthenticated
   };
 };
 
