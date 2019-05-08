@@ -17,7 +17,8 @@ import {
 import { connect } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import { NavigationEvents } from 'react-navigation';
-import MapView, { GOOGLE_PROVIDER } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
+
 
 import { updatePokemon } from '../store/actions/pokemon';
 import { POKEMON_IMG_PATH } from '../config/url.config';
@@ -27,7 +28,7 @@ import TypePickerModal from '../components/modals/TypePicker';
 import theme from '../themes/theme';
 
 const LATITUDE_DELTA = 0.01;
-const LONGITUED_DELTA = 0.01;
+const LONGITUDE_DELTA = 0.01;
 
 class EditPokemon extends React.Component {
   constructor(props) {
@@ -44,10 +45,15 @@ class EditPokemon extends React.Component {
         latitude: 0.0,
         longitude: 0
       },
-      locationPicked: true,
       modalVisible: {
         pokemonType: false,
         pickImage: false
+      },
+      region: {
+        latitude: 0,
+        longitude: 0,
+        latitudeDelta: LATITUDE_DELTA,
+        longitudeDelta: LONGITUDE_DELTA
       },
       imageReplaced: false
     };
@@ -60,6 +66,7 @@ class EditPokemon extends React.Component {
         title="save"
         onPress={navigation.getParam('updatePokemon')}
         type="clear"
+        titleStyle={{color: '#eee'}}
       />
     ),
     headerStyle: {
@@ -147,26 +154,6 @@ class EditPokemon extends React.Component {
       .catch(() => alert('open camera canceled'));
   };
 
-  _inputNameHandler = val => {
-    this.setState(state => ({
-      ...state,
-      control: {
-        ...state.control,
-        name: val
-      }
-    }));
-  };
-
-  _inputCategoryHandler = val => {
-    this.setState(state => ({
-      ...state,
-      control: {
-        ...state.control,
-        category: val
-      }
-    }));
-  };
-
   _pickTypeHandler = item => {
     this.setState(state => ({
       ...state,
@@ -188,30 +175,6 @@ class EditPokemon extends React.Component {
     }));
   };
 
-  _pickCoordinate = coords => {
-    this.setState(state => ({
-      ...state,
-      control: {
-        ...state.control,
-        latitude: coords.latitude,
-        longitude: coords.longitude
-      }
-    }));
-  };
-
-  _onPressMap = event => {
-    const coords = event.nativeEvent.coordinate;
-    this.setState(state => ({
-      ...state,
-      control: {
-        ...state.control,
-        latitude: coords.latitude,
-        longitude: coords.longitude
-      },
-      locationPicked: true
-    }));
-  };
-
   componentDidMount() {
     const { pokemon } = this.props;
 
@@ -224,6 +187,12 @@ class EditPokemon extends React.Component {
         image: {
           path: pokemon.image_url
         },
+        latitude: pokemon.latitude,
+        longitude: pokemon.longitude
+      },
+      region: {
+        latitudeDelta: LATITUDE_DELTA,
+        longitudeDelta: LONGITUDE_DELTA,
         latitude: pokemon.latitude,
         longitude: pokemon.longitude
       }
@@ -287,12 +256,12 @@ class EditPokemon extends React.Component {
               <Input
                 label="name"
                 value={control.name}
-                onChangeText={this._inputNameHandler}
+                onChangeText={name => this.setState({control: { ...this.state.control, name}})}
               />
               <Input
                 label="category"
                 value={control.category}
-                onChangeText={this._inputCategoryHandler}
+                onChangeText={category => this.setState({control: { ...this.state.control, category}})}
               />
             </View>
             <View
@@ -345,23 +314,25 @@ class EditPokemon extends React.Component {
               }}
             >
               <MapView
-                provider={GOOGLE_PROVIDER}
-                region={{
-                  latitude: this.state.control.latitude,
-                  longitude: this.state.control.longitude,
-                  latitudeDelta: LATITUDE_DELTA,
-                  longitudeDelta: LONGITUED_DELTA
+                provider={PROVIDER_GOOGLE}
+                region={this.state.region}
+                style={{
+                  width: width,
+                  height: height * 0.3
                 }}
-                style={{ width: width, height: height * 0.3 }}
-                showsUserLocation={true}
-                ref={map => (this.map = map)}
-                onPress={this._onPressMap}
-              />
-              <Button
-                type="clear"
-                title="pick location"
-                onPress={this._pickCoordinate}
-              />
+                onRegionChange={region => this.setState({ region })}
+                onRegionChangeComplete={region =>
+                  this.setState({
+                    control: {
+                      ...this.state.control,
+                      latitude: region.latitude,
+                      longitude: region.longitude
+                    }
+                  })
+                }
+              >
+                <Marker coordinate={this.state.region} />
+              </MapView>
             </View>
           </ThemeProvider>
         </ScrollView>

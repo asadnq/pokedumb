@@ -7,11 +7,17 @@ import {
   Dimensions,
   ScrollView
 } from 'react-native';
-import { Image, Text, Button, ThemeProvider, Input } from 'react-native-elements';
+import {
+  Image,
+  Text,
+  Button,
+  ThemeProvider,
+  Input
+} from 'react-native-elements';
 import { connect } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 
 import { addPokemon } from '../store/actions/pokemon';
 import typeColor from '../components/misc/typeColor';
@@ -41,7 +47,8 @@ class AddPokemon extends React.Component {
       modalVisible: {
         pokemonType: false,
         pickImage: false
-      }
+      },
+      region: initialRegion
     };
   }
 
@@ -52,6 +59,7 @@ class AddPokemon extends React.Component {
         title="add"
         onPress={navigation.getParam('addPokemon')}
         type="clear"
+        titleStyle={{ color: '#eee' }}
       />
     ),
     headerStyle: {
@@ -78,17 +86,6 @@ class AddPokemon extends React.Component {
     data.append('longitude', longitude);
 
     this.props.addPokemon(data);
-
-    this.setState(state => ({
-      ...state,
-      control: {
-        ...state.control,
-        name: '',
-        type: [],
-        category: '',
-        image: null
-      }
-    }));
   };
 
   _openLibraryHandler = () => {
@@ -196,12 +193,6 @@ class AddPokemon extends React.Component {
         longitude: coords.longitude
       }
     }));
-  };
-
-  _toPickLocation = () => {
-    this.props.navigation.navigate('PickLocation', {
-      setCoordinate: this._setCoordinate.bind(this)
-    });
   };
 
   componentDidMount() {
@@ -340,14 +331,24 @@ class AddPokemon extends React.Component {
             >
               <MapView
                 provider={PROVIDER_GOOGLE}
-                initialRegion={initialRegion}
-                style={{ width: width, height: height * 0.3 }}
-              />
-              <Button
-                type="clear"
-                title="pick location"
-                onPress={this._toPickLocation}
-              />
+                region={this.state.region}
+                style={{
+                  width: width,
+                  height: height * 0.3
+                }}
+                onRegionChange={region => this.setState({ region })}
+                onRegionChangeComplete={region =>
+                  this.setState({
+                    control: {
+                      ...this.state.control,
+                      latitude: region.latitude,
+                      longitude: region.longitude
+                    }
+                  })
+                }
+              >
+                <Marker coordinate={this.state.region} />
+              </MapView>
             </View>
           </ScrollView>
         </ThemeProvider>
