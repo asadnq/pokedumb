@@ -30,7 +30,7 @@ const pokemon = (state = initialState, action) => {
         isLoading: true
       };
     case GET_POKEMONS_FULFILLED:
-    console.log(action.payload.data)
+      console.log(action.payload.data);
       return {
         ...state,
         pokemons: action.payload.data.data,
@@ -61,14 +61,14 @@ const pokemon = (state = initialState, action) => {
       return {
         ...state,
         isLoading: false,
-        pokemons: state.pokemons.concat(action.payload.data.data) 
-      }
+        pokemons: state.pokemons.concat(action.payload.data.data)
+      };
     case GET_MORE_POKEMONS_REJECTED:
-    alert('error when fetching more data')
-    return {
-      ...state,
-      isLoading: false
-    }
+      alert('error when fetching more data');
+      return {
+        ...state,
+        isLoading: false
+      };
     case ADD_POKEMON_PENDING:
       return {
         ...state,
@@ -88,15 +88,24 @@ const pokemon = (state = initialState, action) => {
         isLoading: false
       };
     case UPDATE_POKEMON_FULFILLED:
+      const updated = state.pokemons.map(pokemon => {
+          if (pokemon.id === action.payload.data.data.id) {
+            return action.payload.data.data;
+          } else {
+            return pokemon
+          }
+        })
       return {
         ...state,
+        pokemon: action.payload.data.data,
+        pokemons: updated,
         isLoading: false
-      }
+      };
     case UPDATE_POKEMON_REJECTED:
       return {
         ...state,
         isLoading: false
-      }
+      };
     case DELETE_POKEMON_FULFILLED:
       return {
         ...state,

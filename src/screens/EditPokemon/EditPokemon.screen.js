@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  Dimensions,
-  TouchableOpacity,
-  ScrollView
-} from 'react-native';
+import { View, FlatList, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import {
   Button,
   Text,
@@ -14,23 +7,23 @@ import {
   Input,
   ThemeProvider
 } from 'react-native-elements';
-import { connect } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import { NavigationEvents } from 'react-navigation';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 
-
-import { updatePokemon } from '../store/actions/pokemon';
-import { POKEMON_IMG_PATH } from '../config/url.config';
-import typeColor from '../components/misc/typeColor';
-import ImagePickerModal from '../components/modals/ImagePicker';
-import TypePickerModal from '../components/modals/TypePicker';
-import theme from '../themes/theme';
+import styles from './EditPokemon.style';
+import { POKEMON_IMG_PATH } from '../../config/url.config';
+import typeColor from '../../components/misc/typeColor';
+import ImagePickerModal from '../../components/modals/ImagePicker';
+import TypePickerModal from '../../components/modals/TypePicker';
+import theme from '../../themes/theme';
 
 const LATITUDE_DELTA = 0.01;
 const LONGITUDE_DELTA = 0.01;
 
-class EditPokemon extends React.Component {
+const { width, height } = Dimensions.get('window');
+
+export default class EditPokemon extends React.Component {
   constructor(props) {
     super(props);
 
@@ -66,7 +59,7 @@ class EditPokemon extends React.Component {
         title="save"
         onPress={navigation.getParam('updatePokemon')}
         type="clear"
-        titleStyle={{color: '#eee'}}
+        titleStyle={{ color: '#eee' }}
       />
     ),
     headerStyle: {
@@ -224,12 +217,7 @@ class EditPokemon extends React.Component {
           data={this.props.pokemon_types}
           currentData={this.state.control.type}
         />
-        <ScrollView
-          style={{
-            paddingHorizontal: width * 0.02,
-            backgroundColor: '#E6EAFF'
-          }}
-        >
+        <ScrollView style={styles.container}>
           <ThemeProvider theme={theme.form}>
             <Image
               source={{
@@ -246,29 +234,27 @@ class EditPokemon extends React.Component {
               type="clear"
               onPress={this._pickImageModalVisibilityHandler}
             />
-            <View
-              style={{
-                justifyContent: 'space-evenly',
-                flexDirection: 'column',
-                height: height * 0.25
-              }}
-            >
+            <View style={styles.formInputContainer}>
               <Input
                 label="name"
                 value={control.name}
-                onChangeText={name => this.setState({control: { ...this.state.control, name}})}
+                onChangeText={name =>
+                  this.setState({ control: { ...this.state.control, name } })
+                }
               />
               <Input
                 label="category"
                 value={control.category}
-                onChangeText={category => this.setState({control: { ...this.state.control, category}})}
+                onChangeText={category =>
+                  this.setState({
+                    control: { ...this.state.control, category }
+                  })
+                }
               />
             </View>
             <View
               style={{
-                flexDirection: 'column',
-                height: height * 0.15,
-                justifyContent: 'space-around'
+                flexDirection: 'column'
               }}
             >
               <Button
@@ -277,25 +263,14 @@ class EditPokemon extends React.Component {
                 type="clear"
               />
             </View>
-            <View
-              style={{ height: height * 0.08, marginVertical: height * 0.01 }}
-            >
+            <View style={styles.pickTypeContainer}>
               <FlatList
                 data={control.type}
                 horizontal={true}
                 renderItem={({ item }) => {
                   return (
                     <TouchableOpacity
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        marginRight: width * 0.02,
-                        borderRadius: 3,
-                        backgroundColor: typeColor(item.name),
-                        marginVertical: 5,
-                        width: width * 0.22
-                      }}
+                      style={styles.typeList}
                       onPress={this._removeTypehandler.bind(this, item.id)}
                     >
                       <Text style={{ color: '#eee' }}>{item.name}</Text>
@@ -305,14 +280,7 @@ class EditPokemon extends React.Component {
                 keyExtractor={item => 'key ' + item.id}
               />
             </View>
-            <View
-              style={{
-                height: height * 0.4,
-                justifyContent: 'space-evenly',
-                flexDirection: 'column',
-                marginBottom: height * 0.05
-              }}
-            >
+            <View style={styles.pickLocationContainer}>
               <MapView
                 provider={PROVIDER_GOOGLE}
                 region={this.state.region}
@@ -340,54 +308,3 @@ class EditPokemon extends React.Component {
     );
   }
 }
-
-const mapState = state => {
-  return {
-    pokemon: state.pokemon.pokemon,
-    pokemon_types: state.pokemon_type.pokemon_types
-  };
-};
-
-export default connect(
-  mapState,
-  { updatePokemon }
-)(EditPokemon);
-
-const { width, height } = Dimensions.get('window');
-
-const styles = StyleSheet.create({
-  pickImageModal: {
-    backgroundColor: '#fff',
-    height: height * 0.45,
-    width: '70%',
-    flexDirection: 'column',
-    borderRadius: 10
-  },
-  pickTypeModal: {
-    backgroundColor: '#fff',
-    height: height * 0.45,
-    width: '70%',
-    flexDirection: 'column',
-    borderRadius: 10
-  },
-  imgWrapper: {
-    flexDirection: 'column',
-    width: '100%',
-    height: height * 0.4
-  },
-  img: {
-    alignSelf: 'stretch',
-    flex: 1,
-    width: undefined,
-    height: undefined
-  },
-  pokemonName: {
-    fontSize: width * 0.08,
-    fontWeight: 'bold',
-    color: '#262322'
-  },
-  pokemonCategory: {},
-  editButtonContainer: {
-    width: '73%'
-  }
-});

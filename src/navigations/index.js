@@ -4,50 +4,62 @@ import {
   createStackNavigator,
   createMaterialTopTabNavigator,
   createSwitchNavigator,
+  createBottomTabNavigator
 } from 'react-navigation';
 
-import Home from '../screens/Home';
-import AddPokemon from '../screens/AddPokemon';
-import PokemonDetail from '../screens/PokemonDetail';
-import PokeMap from '../screens/PokeMap';
+import PokemonList from '../screens/PokemonList/PokemonList.container';
+import AddPokemon from '../screens/AddPokemon/AddPokemon.container';
+import PokemonDetail from '../screens/PokemonDetail/PokemonDetail.container';
+import PokeMap from '../screens/PokeMap/PokeMap.container';
 import Login from '../screens/Auth/Login';
-import EditPokemon from '../screens/EditPokemon'
-import PickLocation from '../screens/PickLocation'
-import FilterPokemon from '../screens/FilterPokemon'
+import EditPokemon from '../screens/EditPokemon/EditPokemon.container';
+import PickLocation from '../screens/PickLocation';
+import FilterPokemon from '../screens/FilterPokemon';
 import Register from '../screens/Auth/Register';
 
-const MainTab = createMaterialTopTabNavigator({
-  Home: {
-    screen: Home,
-  },
-  PokeMap: {
-    screen: PokeMap,
-  },
-},
-{
-  initialRouteName: 'Home',
-  tabBarPosition: 'top',
-  tabBarOptions: {
-    labelStyle: {
-      fontSize: 12,
+import { MapIcon, PokeBall } from '../assets/icons'
+
+const MainTab = createBottomTabNavigator(
+  {
+    Home: {
+      screen: PokemonList,
+      navigationOptions: ({ navigation }) => ({
+        tabBarIcon: ({ focused, tintColor }) => {
+          return <PokeBall size={30} />;
+        }
+      })
     },
-    style: {
-      backgroundColor: '#58B09C',
-    },
+    PokeMap: {
+      screen: PokeMap,
+      navigationOptions: ({ navigation }) => ({
+        tabBarIcon: ({ focused, tintColor }) => {
+          return <MapIcon size={30} />;
+        }
+      })
+    }
+  },
+  {
+    initialRouteName: 'Home',
+    tabBarPosition: 'top',
+    tabBarOptions: {
+      labelStyle: {
+        fontSize: 12,
+        color: '#1B2623'
+      },
+      style: {
+        backgroundColor: '#CED9D6'
+      }
+    }
   }
-}
 );
 
 const MainStack = createStackNavigator(
   {
     MainTab: {
-      screen: MainTab,
-      navigationOptions: {
-        header: null
-      }
+      screen: MainTab
     },
     AddPokemon: {
-      screen: AddPokemon,
+      screen: AddPokemon
     },
     PokemonDetail: {
       screen: PokemonDetail
@@ -63,36 +75,36 @@ const MainStack = createStackNavigator(
     }
   },
   {
-    initialRouteName: 'MainTab',
-  },
+    initialRouteName: 'MainTab'
+  }
 );
 
 const AuthStack = createStackNavigator(
   {
     Login: {
-      screen: Login,
+      screen: Login
     },
     Register: {
       screen: Register
     }
   },
   {
-    InitialRouteName: 'Login',
-  },
+    InitialRouteName: 'Login'
+  }
 );
 
 const MainSwitch = createSwitchNavigator(
   {
     MainStack: {
-      screen: MainStack,
+      screen: MainStack
     },
     AuthStack: {
-      screen: AuthStack,
-    },
+      screen: AuthStack
+    }
   },
   {
-    initialRouteName: 'AuthStack',
-  },
+    initialRouteName: 'AuthStack'
+  }
 );
 
 const RootNavigation = createAppContainer(MainSwitch);

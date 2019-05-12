@@ -1,14 +1,9 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { Input, Image, Text, Button } from 'react-native-elements';
-import { connect } from 'react-redux';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 
-import { getPokemon } from '../store/actions/pokemon'
-import { POKEMON_IMG_PATH } from '../config/url.config';
-
-const LATITUDE_DELTA = 0.01;
-const LONGITUED_DELTA = 0.01;
+import { POKEMON_IMG_PATH } from '../../config/url.config';
 
 const initialRegion = {
   latitude: -6.301914,
@@ -17,7 +12,7 @@ const initialRegion = {
   longitudeDelta: 0.0421
 };
 
-class PokeMap extends React.Component {
+export default class PokeMap extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -83,8 +78,8 @@ class PokeMap extends React.Component {
         <Marker
           key={pokemon.id}
           coordinate={{
-            latitude: pokemon.latitude,
-            longitude: pokemon.longitude
+            latitude: parseFloat(pokemon.latitude),
+            longitude: parseFloat(pokemon.longitude )
           }}
           onPress={() => {
             this.props.navigation.push('PokemonDetail', { pokemon });
@@ -125,17 +120,9 @@ class PokeMap extends React.Component {
           region={this.state.region}
           onPress={this._onPressMap}
         >
-          {this._renderMarkers()}
+        {this._renderMarkers()}
         </MapView>
       </View>
     );
   }
 }
-
-const mapState = state => {
-  return {
-    pokemons: state.pokemon.pokemons
-  };
-};
-
-export default connect(mapState, { getPokemon })(PokeMap);

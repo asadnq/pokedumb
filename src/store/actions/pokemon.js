@@ -47,15 +47,19 @@ export const addPokemon = pokemon => (dispatch, getState) => {
     payload: instance
       .post('/pokemons', pokemon)
       .then(res => {
+        console.log(res)
         dispatch({
           type: ADD_POKEMON_FULFILLED,
           payload: res
         });
+        NavigationService.navigate('Home')
       })
-      .catch(() => {
+      .catch(err => {
+        console.log(err)
         dispatch({
           type: ADD_POKEMON_REJECTED
         });
+        alert('error occured.')
       })
   };
 };
@@ -70,13 +74,14 @@ export const updatePokemon = (id, data) => dispatch => {
         type: UPDATE_POKEMON_FULFILLED,
         payload: res
         });
-        NavigationService.back()
+        NavigationService.navigate('PokemonDetail', { pokemon: res.data.data })
         alert('updated')
       })
       .catch(() => {
         dispatch({
           type: UPDATE_POKEMON_REJECTED
         })
+        alert('update failed')
       })
   }
 }

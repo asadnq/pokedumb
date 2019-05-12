@@ -8,7 +8,7 @@ const reducers = combineReducers({
     pokemon,
     pokemon_type,
     pokemon_category,
-    user
+    user,
 })
 
 export default reducers;

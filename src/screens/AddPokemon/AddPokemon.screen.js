@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   View,
-  StyleSheet,
   FlatList,
   TouchableOpacity,
   Dimensions,
@@ -14,16 +13,16 @@ import {
   ThemeProvider,
   Input
 } from 'react-native-elements';
-import { connect } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 
-import { addPokemon } from '../store/actions/pokemon';
-import typeColor from '../components/misc/typeColor';
-import ImagePickerModal from '../components/modals/ImagePicker';
-import TypePickerModal from '../components/modals/TypePicker';
-import theme from '../themes/theme';
+import ImagePickerModal from '../../components/modals/ImagePicker';
+import TypePickerModal from '../../components/modals/TypePicker';
+import theme from '../../themes/theme';
+import styles from './AddPokemon.style';
+import ListType from '../../components/ListType';
+import typeColor from '../../components/misc/typeColor';
 
 const initialRegion = {
   latitude: -6.301914,
@@ -32,7 +31,7 @@ const initialRegion = {
   longitudeDelta: 0.0421
 };
 
-class AddPokemon extends React.Component {
+export default class AddPokemon extends React.Component {
   constructor() {
     super();
     this.state = {
@@ -263,13 +262,7 @@ class AddPokemon extends React.Component {
               onPress={this._pickImageModalVisibilityHandler}
               title="pick image"
             />
-            <View
-              style={{
-                justifyContent: 'space-evenly',
-                flexDirection: 'column',
-                height: height * 0.25
-              }}
-            >
+            <View style={styles.formInputContainer}>
               <Input
                 onChangeText={this._inputNameHandler}
                 value={this.state.control.name}
@@ -288,9 +281,7 @@ class AddPokemon extends React.Component {
                 type="clear"
               />
             </View>
-            <View
-              style={{ height: height * 0.08, marginVertical: height * 0.01 }}
-            >
+            <View style={styles.pickTypeContainer}>
               <FlatList
                 data={this.state.control.type}
                 horizontal={true}
@@ -303,16 +294,7 @@ class AddPokemon extends React.Component {
                 renderItem={({ item }) => {
                   return (
                     <TouchableOpacity
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        marginRight: width * 0.02,
-                        borderRadius: 3,
-                        backgroundColor: typeColor(item.name),
-                        marginVertical: 5,
-                        width: width * 0.22
-                      }}
+                      style={[styles.typeList, { backgroundColor: typeColor(item.name)}]}
                       onPress={this._removeTypehandler.bind(this, item.id)}
                     >
                       <Text style={{ color: '#eee' }}>{item.name}</Text>
@@ -321,14 +303,7 @@ class AddPokemon extends React.Component {
                 }}
               />
             </View>
-            <View
-              style={{
-                height: height * 0.4,
-                justifyContent: 'space-evenly',
-                flexDirection: 'column',
-                marginBottom: height * 0.05
-              }}
-            >
+            <View style={styles.pickLocationContainer}>
               <MapView
                 provider={PROVIDER_GOOGLE}
                 region={this.state.region}
@@ -356,42 +331,3 @@ class AddPokemon extends React.Component {
     );
   }
 }
-
-const mapState = state => ({
-  pokemon_types: state.pokemon_type.pokemon_types
-});
-
-export default connect(
-  mapState,
-  { addPokemon }
-)(AddPokemon);
-
-const { height, width } = Dimensions.get('window');
-
-const styles = StyleSheet.create({
-  pickImageModal: {
-    backgroundColor: '#fff',
-    height: height * 0.45,
-    width: '70%',
-    flexDirection: 'column',
-    borderRadius: 10
-  },
-  pickTypeModal: {
-    backgroundColor: '#fff',
-    height: height * 0.45,
-    width: '70%',
-    flexDirection: 'column',
-    borderRadius: 10
-  },
-  imgWrapper: {
-    flexDirection: 'row',
-    width: '100%',
-    height: height * 0.4
-  },
-  img: {
-    flex: 1,
-    alignSelf: 'stretch',
-    width: undefined,
-    height: undefined
-  }
-});

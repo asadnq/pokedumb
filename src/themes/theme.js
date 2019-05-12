@@ -49,7 +49,7 @@ const theme = {
       }
     }
   },
-  login: {
+  auth: {
     Input: {
       containerStyle: {
         flexDirection: 'column',

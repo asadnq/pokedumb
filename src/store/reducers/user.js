@@ -1,5 +1,4 @@
 import {LOGIN_PENDING, LOGIN_FULFILLED, LOGIN_REJECTED, REGISTER_PENDING, REGISTER_FULFILLED, REGISTER_REJECTED} from '../actions/types';
-import NavigationService from '../../navigations/NavigationService';
 
 const initialState = {
   user: {},
