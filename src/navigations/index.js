@@ -25,15 +25,17 @@ const MainTab = createBottomTabNavigator(
       screen: PokemonList,
       navigationOptions: ({ navigation }) => ({
         tabBarIcon: ({ focused, tintColor }) => {
-          return <PokeBall size={30} />;
-        }
-      })
+          return <PokeBall size={25} />;
+        },
+        title: 'Pokemon List'
+      }),
+      
     },
     PokeMap: {
       screen: PokeMap,
       navigationOptions: ({ navigation }) => ({
         tabBarIcon: ({ focused, tintColor }) => {
-          return <MapIcon size={30} />;
+          return <MapIcon size={25} />;
         }
       })
     }
@@ -56,7 +58,12 @@ const MainTab = createBottomTabNavigator(
 const MainStack = createStackNavigator(
   {
     MainTab: {
-      screen: MainTab
+      screen: MainTab,
+      navigationOptions: ({navigation}) => {
+        return {
+          header: null
+        }
+      }
     },
     AddPokemon: {
       screen: AddPokemon

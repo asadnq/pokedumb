@@ -4,6 +4,7 @@ import { Text, Image, Input, Button } from 'react-native-elements';
 
 import FAB from '../../components/buttons/FAB';
 import PokemonCard from '../../components/cards/PokemonCard';
+import HeaderSearch from '../../components/headers/HeaderSearch';
 
 export default class PokemonList extends React.Component {
   constructor() {
@@ -20,10 +21,6 @@ export default class PokemonList extends React.Component {
       isFiltered: false
     };
   }
-
-  static navigationOptions = ({ navigation }) => ({
-    title: 'Home'
-  });
 
   _getMorePokemons = () => {
     this.setState(
@@ -95,32 +92,26 @@ export default class PokemonList extends React.Component {
     this.props.getPokemonTypes();
   }
 
-  render() {
-    return (
-      <View style={{ height: '100%' }}>
-        <View style={{ flexDirection: 'row' }}>
-          <Input
-            placeholder="search pokemon..."
-            inputContainerStyle={{ borderBottomColor: 'rgba(0,0,0,0)' }}
-            onChangeText={this._searchHandler}
-            containerStyle={{ width: '70%', borderRightWidth: 1 }}
-            value={this.state.control.search}
-            leftIcon={{
-              name: 'search',
-              size: 20
-            }}
-          />
-          <Button
-            type="clear"
-            title="filter"
-            onPress={this._toFilterPokemon}
-            containerStyle={{ width: '30%' }}
-          />
+  _renderPokemonList = () => {
+    if (this.props.pokemons.length <= 0) {
+      return (
+        <View
+          style={{
+            height: '100%',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+        >
+          <Text>No result was found...</Text>
         </View>
-        <ScrollView style={{ width: '100%' }}>
-          {this.props.isLoading ? (
-            <ActivityIndicator />
-          ) : (
+      );
+    } else {
+      return (
+        <React.Fragment>
+          <ScrollView
+            style={{ width: '100%' }}
+            showsVerticalScrollIndicator={false}
+          >
             <FlatList
               numColumns={2}
               data={this.props.pokemons}
@@ -133,15 +124,37 @@ export default class PokemonList extends React.Component {
               )}
               onEndReached={this._getMorePokemons}
               onEndReachedThreshold={0.5}
+              showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
             />
-          )}
-        </ScrollView>
-        <FAB
-          iconName="add"
-          iconSize={32}
-          iconColor="#FFF"
-          onPress={this._toAddPokemon}
+          </ScrollView>
+          <FAB
+            iconName="add"
+            iconSize={32}
+            iconColor="#FFF"
+            onPress={this._toAddPokemon}
+          />
+        </React.Fragment>
+      );
+    }
+  };
+
+  render() {
+    return (
+      <View style={{ height: '100%' }}>
+        <HeaderSearch
+          searchProps={{
+            onChangeText: this._searchHandler,
+            placeholder: 'search pokemon...',
+            value: this.state.control.search
+          }}
+          onFilterButtonPress={this._toFilterPokemon}
         />
+        {this.props.isLoading ? (
+          <ActivityIndicator />
+        ) : (
+          this._renderPokemonList()
+        )}
       </View>
     );
   }
