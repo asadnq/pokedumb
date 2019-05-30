@@ -180,8 +180,8 @@ export default class EditPokemon extends React.Component {
         image: {
           path: pokemon.image_url
         },
-        latitude: pokemon.latitude,
-        longitude: pokemon.longitude
+        latitude: parseFloat(pokemon.latitude),
+        longitude: parseFloat(pokemon.longitude)
       },
       region: {
         latitudeDelta: LATITUDE_DELTA,
